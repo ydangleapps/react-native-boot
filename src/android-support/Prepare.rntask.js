@@ -32,6 +32,16 @@ module.exports = runner => {
             return ctx.runWithOutput(`"${path.resolve(ctx.android.sdkRoot, 'platform-tools/adb')}" ${args}`)
         }
 
+        // Add ADB run command
+        ctx.android.adbForwardOutput = function(args) {
+            return ctx.run(`"${path.resolve(ctx.android.sdkRoot, 'platform-tools/adb')}" ${args}`)
+        }
+
+        // Add ADB stream command
+        ctx.android.adbStream = function(args, callback) {
+            return ctx.runStream(`"${path.resolve(ctx.android.sdkRoot, 'platform-tools/adb')}" ${args}`, null, callback)
+        }
+
         // Add gradle run command
         ctx.android.gradle = function(args) {
             return ctx.run(`"${path.resolve(ctx.android.path, 'gradlew')}" ${args}`, { cwd: ctx.android.path })
@@ -57,7 +67,7 @@ module.exports = runner => {
         ctx.status('Preparing native project...')
         rimraf.sync(ctx.android.path, { glob: false })
 
-        // Copy Android template project. This template was created by running `npx @react-native-community/cli@2.5.0 init AppNamePlaceholder`
+        // Copy Android template project
         await fs.copy(path.resolve(__dirname, 'native-template'), ctx.android.path)
 
         // Update relative paths in the build config
@@ -75,7 +85,7 @@ module.exports = runner => {
         // Change project's package name
         replace.sync({ 
             files: path.resolve(ctx.android.path, '**/*'), 
-            from: /com.appnameplaceholder/g,
+            from: /com.helloworld/g,
             to: ctx.android.packageName
         })
         replace.sync({ 
@@ -85,22 +95,22 @@ module.exports = runner => {
         })
         replace.sync({ 
             files: path.resolve(ctx.android.path, 'app/**/*.java'), 
-            from: /return "AppNamePlaceholder"/g,
+            from: /return "HelloWorld"/g,
             to: `return "${ctx.project.appInfo.name}"`
         })
         replace.sync({ 
             files: path.resolve(ctx.android.path, 'settings.gradle'), 
-            from: /AppNamePlaceholder/g,
+            from: /HelloWorld/g,
             to: ctx.project.appInfo.name
         })
 
         // Move package files
         await fs.move(
-            path.resolve(ctx.android.path, 'app/src/main/java/com/appnameplaceholder/MainActivity.java'), 
+            path.resolve(ctx.android.path, 'app/src/main/java/com/helloworld/MainActivity.java'), 
             path.resolve(ctx.android.path, 'app/src/main/java', ctx.android.packageName.replace(/\./g, '/'), 'MainActivity.java')
         )
         await fs.move(
-            path.resolve(ctx.android.path, 'app/src/main/java/com/appnameplaceholder/MainApplication.java'), 
+            path.resolve(ctx.android.path, 'app/src/main/java/com/helloworld/MainApplication.java'), 
             path.resolve(ctx.android.path, 'app/src/main/java', ctx.android.packageName.replace(/\./g, '/'), 'MainApplication.java')
         )
 

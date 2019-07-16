@@ -7,11 +7,11 @@ module.exports = runner => runner.register('react-native-zeroconf').after('prepa
     // Fix permissions for zeroconf lib
     ctx.status('Adding permissions...')
     replace.sync({
-        files: path.resolve(ctx.project.path, 'android/app/src/main/AndroidManifest.xml'),
+        files: path.resolve(ctx.android.path, 'app/src/main/AndroidManifest.xml'),
         from: '<application',
         to: `
 
-            <!-- Permissions for Zeroconf lib -->
+            <!-- Permissions for react-native-zeroconf lib -->
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
             <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />

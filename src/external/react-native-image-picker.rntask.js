@@ -12,11 +12,11 @@ module.exports = runner => {
         // Fix permissions for image-picker lib
         ctx.status('Adding permissions...')
         replace.sync({
-            files: path.resolve(ctx.project.path, 'android/app/src/main/AndroidManifest.xml'),
+            files: path.resolve(ctx.android.path, 'app/src/main/AndroidManifest.xml'),
             from: '<application',
             to: `
 
-                <!-- Permissions for image-picker lib -->
+                <!-- Permissions for react-native-image-picker lib -->
                 <uses-permission android:name="android.permission.CAMERA" />
                 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
             

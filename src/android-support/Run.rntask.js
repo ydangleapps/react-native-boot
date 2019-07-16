@@ -55,14 +55,40 @@ module.exports = runner => {
         // Forward TCP port to the device
         await ctx.android.adb(`-s ${ctx.device.serial} reverse tcp:8081 tcp:8081`)
 
+        // Clear old logs
+        await ctx.android.adb(`-s ${ctx.device.serial} logcat --clear`)
+
         // Start the app on the device
         ctx.status('Starting app: ' + chalk.blue(ctx.android.packageName))
         await ctx.android.adb(`-s ${ctx.device.serial} shell monkey -p ${ctx.android.packageName} 1`)
 
-        // Fetch app PID
+        // Get app process ID
+        let txt = await ctx.android.adb(`-s ${ctx.device.serial} shell ps`)
+        let appPid = txt.split('\n').map(line => new RegExp(`^.*? ([0-9]+?) .*? ${ctx.android.packageName}$`).exec(line.trim())).filter(m => !!m).map(m => m[1])[0]
+        ctx.status('Displaying logs for process ' + chalk.cyan(appPid))
 
+        // Log output
+        ctx.android.adbStream(`-s ${ctx.device.serial} logcat`, line => {
 
-        // Output device logs
+            // Extract fields
+            let matched = /^([0-9][0-9]-[0-9][0-9])\s+?([0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9])\s+([0-9]+)\s+([0-9]+)\s+([VDIWE])\s+(.*)$/gs.exec(line.trim())
+            if (!matched) return
+            let pid = matched[3]
+            let severity = matched[5]
+            let txt = matched[6]
+
+            // Hide if not from this app
+            if (pid != appPid/* && txt.indexOf(ctx.android.packageName) == -1*/)
+                return
+
+            // Hide debug severity
+            if (severity == 'V' || severity == 'D')
+                return
+
+            // Log it
+            console.log(severity + ' ' + txt)
+
+        })
 
     })
 

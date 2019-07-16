@@ -1,2 +1,3 @@
-rootProject.name = 'AppNamePlaceholder'
+rootProject.name = 'HelloWorld'
+
 include ':app'
