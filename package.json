@@ -1,0 +1,25 @@
+{
+  "name": "react-native-do",
+  "version": "1.0.0",
+  "description": "Simpler CLI tools for React Native projects.",
+  "main": "cli.js",
+  "repository": "https://github.com/jjv360/react-native-do",
+  "author": "jjv360",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "fs-extra": "^8.1.0",
+    "glob": "^7.1.4",
+    "inquirer": "^6.5.0",
+    "plist": "^3.0.1",
+    "replace-in-file": "^4.1.1",
+    "rimraf": "^2.6.3",
+    "sharp": "^0.22.1",
+    "string-hash": "^1.1.3"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "react-native": "^0.60.3"
+  }
+}

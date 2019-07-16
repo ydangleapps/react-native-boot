@@ -1,0 +1,38 @@
+
+const path = require('path')
+const fs = require('fs-extra')
+const glob = require('glob')
+
+//
+// Add helper methods for dealing with files
+module.exports = runner => runner.register().name('Add file helpers').before('_init').do(async ctx => {
+
+    // Return true if the specified string or regex exists in a file in the specified directory
+    ctx.files = {}
+    ctx.files.contains = async function(globPath, query) {
+
+        // Glob search
+        let files = glob.sync(globPath, { follow: true })
+        for (let file of files) {
+
+            // Read file
+            let str = await fs.readFile(file, 'utf8')
+
+            // Check if string exists
+            if (typeof query == 'string')
+                if (str.includes(query))
+                    return true
+
+            // Check if regex is found
+            if (query instanceof RegExp)
+                if (str.match(query))
+                    return true
+
+        }
+
+        // Not found
+        return false
+
+    }
+
+})

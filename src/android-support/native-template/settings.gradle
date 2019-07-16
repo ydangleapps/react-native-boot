@@ -1,0 +1,2 @@
+rootProject.name = 'AppNamePlaceholder'
+include ':app'
