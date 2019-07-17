@@ -1,7 +1,9 @@
-
+![status](https://img.shields.io/badge/status-pre%20alpha-red.svg)
+![npm](https://img.shields.io/npm/dw/react-native-boot.svg)
+[![npm (tag)](https://img.shields.io/npm/v/react-native-boot/latest.svg)](https://github.com/wix/react-native-navigation/tree/master)
+[![StackExchange](https://img.shields.io/stackexchange/stackoverflow/t/react-native-navigation.svg)](https://stackoverflow.com/questions/tagged/react-native-boot)
 
 <h1 align="center">
-  <img src="logo.png"/><br>
   React Native Boot
 </h1>
 
