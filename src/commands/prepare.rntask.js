@@ -32,6 +32,13 @@ module.exports = runner => {
     // Prepare command group
     runner.register('prepare').name('Prepare').do(async ctx => {
 
+        // Check selected device
+        if (!ctx.device)
+            throw new Error('No device selected!')
+
+        // Run the prepare step
+        await runner.run('prepare.' + ctx.device.platform, ctx)
+
         // Store the dependency state to file to prevent recreating the native projects again on next run
         ctx.session.set('lastDependencyHash', ctx.dependencyHash)
 

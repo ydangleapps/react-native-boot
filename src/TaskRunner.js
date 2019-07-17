@@ -74,6 +74,7 @@ module.exports = class TaskRunner {
             throw new Error('Task not found: ' + chalk.blue(id))
 
         // Check if the task's checks pass first
+        ctx.stack.push(id)
         let allPassed = true
         for (let check of task.requireChecks) {
             if (!await check(ctx)) {
@@ -81,6 +82,7 @@ module.exports = class TaskRunner {
                 break
             }
         }
+        ctx.stack.pop()
         if (!allPassed)
             return
 

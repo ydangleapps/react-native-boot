@@ -11,12 +11,14 @@ React Native Boot is an experimental CLI tool for building and running react nat
 seeing any native code or configuration._ If you like the idea of a pure Javascript React Native app,
 give it a try!
 
+Check [here](Support.md) for current library and platform support.
+
 ## New project setup (NOT IMPLEMENTED YET)
 
 To create a new react-native project, make sure you have [Node](https://nodejs.org) installed, and then run:
 
 ``` sh
-npx react-native-boot new
+npx github:ydangleapps/react-native-boot new
 ```
 
 ## Add to existing project

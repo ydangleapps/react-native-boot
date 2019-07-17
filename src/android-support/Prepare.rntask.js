@@ -4,28 +4,68 @@ const fs = require('fs-extra')
 const os = require('os')
 const rimraf = require('rimraf')
 const replace = require('replace-in-file')
+const which = require('which')
+
+// Find an executable on the path and return a relative path to it, or return "executable-not-found"
+function whichExe(name, resolvePath) {
+    try {
+        console.log(name, which.sync(name), resolvePath, path.resolve(which.sync(name), resolvePath))
+        return path.resolve(which.sync(name), resolvePath)
+    } catch (err) {
+        return "executable-not-found"
+    }
+}
 
 module.exports = runner => {
 
+    // Find SDK location from common locations
+    let sdkRoot = [
+
+        // Check the env var
+        process.env.ANDROID_HOME,
+        
+        // Common install path on Mac
+        path.resolve(require('os').homedir(), 'Library/Android/sdk'),
+
+        // Common install path on Windows
+        path.resolve(require('os').homedir(), 'AppData/Local/Android/Sdk'),
+
+        // Find on path
+        whichExe('adb', '..')
+
+    ].find(loc => fs.existsSync(loc))
+
     //
     // Add android project settings to the context
-    runner.register('_init.android').after('_init').do(async ctx => {
+    runner.register('_init.android').name('Android').after('_init').requires(async ctx => {
+
+        // Make sure SDK exists
+        if (!sdkRoot) {
+            ctx.warning('Android SDK not installed.')
+            return false
+        }
+
+        // Make sure Java exists
+        if (!ctx.env.JAVA_HOME) {
+            ctx.warning('Java is not installed, or JAVA_HOME has not been set.')
+            return false
+        }
+
+        // Success, Android is available
+        return true
+
+    }).do(async ctx => {
+
+        // Register platform
+        ctx.android = {}
+        ctx.android.sdkRoot = sdkRoot
+        ctx.platforms['android'] = {
+            name: 'Android'
+        }
 
         // Get path to Android project
-        ctx.android = {}
         ctx.android.path = path.resolve(ctx.tempPath, 'android')
         ctx.android.packageName = ctx.property('packageID.android')
-
-        // Find SDK location from common locations
-        ctx.android.sdkRoot = [
-
-            // Check the env var
-            process.env.ANDROID_HOME,
-            
-            // Common install path on Mac
-            path.resolve(require('os').homedir(), 'Library/Android/sdk')
-
-        ].find(loc => fs.existsSync(loc))
 
         // Add ADB run command
         ctx.android.adb = function(args) {
@@ -51,7 +91,7 @@ module.exports = runner => {
 
     //
     // Run checks to see if the project needs to be recreated
-    runner.register().before('prepare.check').do(async ctx => {
+    runner.register('prepare.android.check').do(async ctx => {
 
         // Recreate if project folder no longer exists
         if (!fs.existsSync(ctx.android.path))
@@ -61,7 +101,7 @@ module.exports = runner => {
 
     //
     // The 'prepare' task is run when the native project needs to be recreated.
-    runner.register('prepare.android').before('prepare').name('Android').do(async ctx => {
+    runner.register('prepare.android').name('Android').do(async ctx => {
 
         // Delete temporary Android project directory if it exists
         ctx.status('Preparing native project...')
@@ -116,10 +156,6 @@ module.exports = runner => {
 
         // Make gradlew executable for linux-ish OSes
         await fs.chmod(path.resolve(ctx.android.path, 'gradlew'), 0o777)
-
-        // Check Android SDK exists
-        if (!ctx.android.sdkRoot)
-            throw new Error(`Couldn't find your Android SDK. Have you installed Android Studio?`)
 
         // Create local properties
         let config = `

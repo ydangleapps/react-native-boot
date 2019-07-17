@@ -42,6 +42,9 @@ async function main() {
     taskRunner.contextTemplate.project.path = projectPath
     taskRunner.contextTemplate.project.info = require(path.resolve(projectPath, 'package.json'))
 
+    // Platform object, extended by platform plugins
+    taskRunner.contextTemplate.platforms = {}
+
     // Read app information
     try {
         taskRunner.contextTemplate.project.appInfo = require(path.resolve(projectPath, 'app.json'))
@@ -84,17 +87,23 @@ async function main() {
 
 }
 
-main().catch(err => {
+// Start after init
+setTimeout(e => {
 
-    // If not verbose, print simple error
-    if (!verbose)
-        return console.log(chalk.blue(taskRunner.errorStack.map(id => taskRunner.tasks[id].taskName || id).join(' > ') + ': ') + chalk.red('Failed: ') + err.message)
+    // Run main
+    main().catch(err => {
 
-    // Print error, if there's a task stack involved
-    if (taskRunner.errorStack)
-        console.log(chalk.blue(taskRunner.errorStack.map(id => taskRunner.tasks[id].taskName || id).join(' > ') + ': ') + chalk.red('Failed'))
-        
-    // Print stack
-    console.log(err.stack)
+        // If not verbose, print simple error
+        if (!verbose)
+            return console.log(chalk.blue(taskRunner.errorStack.map(id => taskRunner.tasks[id].taskName || id).join(' > ') + ': ') + chalk.red('Failed: ') + err.message)
 
-})
+        // Print error, if there's a task stack involved
+        if (taskRunner.errorStack)
+            console.log(chalk.blue(taskRunner.errorStack.map(id => taskRunner.tasks[id].taskName || id).join(' > ') + ': ') + chalk.red('Failed'))
+            
+        // Print stack
+        console.log(err.stack)
+
+    })
+
+}, 1);

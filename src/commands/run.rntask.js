@@ -14,17 +14,17 @@ module.exports = runner => runner.register('run').name('Run').do(async ctx => {
     if (ctx.setupNeeded)
         await runner.run('setup', ctx)
 
-    // Recreate native folders if necessary
-    await runner.run('prepare.check', ctx)
-    if (ctx.prepareNeeded)
-        await runner.run('prepare', ctx)
-
     // Select device if needed
     await runner.run('devices.check', ctx)
     if (!ctx.device)
         await runner.run('devices', ctx)
 
+    // Recreate native folders if necessary
+    await runner.run(`prepare.${ctx.device.platform}.check`, ctx)
+    if (ctx.prepareNeeded)
+        await runner.run(`prepare.${ctx.device.platform}`, ctx)
+
     // Execute selected device's run task
-    await runner.run(ctx.device.runTask, ctx)
+    await runner.run(`run.${ctx.device.platform}`, ctx)
 
 })

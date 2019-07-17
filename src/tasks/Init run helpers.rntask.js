@@ -7,11 +7,14 @@ const fs = require('fs-extra')
 // Add helper methods to the task context
 module.exports = runner => runner.register().name('Add run helpers').before('_init').do(async ctx => {
 
+    // Allow tasks to override environment variables
+    ctx.env = Object.assign({}, process.env)
+
     // Add a function to run a command line tool
     ctx.run = (cmd, opts) => {
         
         // Start process
-        let process = ChildProcess.spawn(cmd, [], Object.assign({ stdio: 'inherit', shell: true, cwd: ctx.project.path }, opts))
+        let process = ChildProcess.spawn(cmd, [], Object.assign({ stdio: 'inherit', shell: true, cwd: ctx.project.path, env: ctx.env }, opts))
 
         // Wait for process to finish
         return new Promise((resolve, reject) => {
@@ -60,6 +63,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
             // Run process
             ChildProcess.exec(cmd, Object.assign({
                 cwd: ctx.project.path,
+                env: ctx.env
             }, opts), (error, stdout, stderr) => {
 
                 // Fail if error
@@ -78,7 +82,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
     ctx.runStream = (cmd, opts, callback) => {
 
         // Start process
-        let process = ChildProcess.spawn(cmd, [], Object.assign({ shell: true, cwd: ctx.project.path }, opts))
+        let process = ChildProcess.spawn(cmd, [], Object.assign({ shell: true, cwd: ctx.project.path, env: ctx.env }, opts))
 
         // Handle text out
         let buffer = ""

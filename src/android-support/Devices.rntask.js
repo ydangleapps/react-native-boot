@@ -5,7 +5,7 @@ module.exports = runner => {
 
     //
     // Check if the user's chosen device is still connected
-    runner.register().after('devices.check').name('Android').do(async ctx => {
+    runner.register().after('devices.check').name('Android').requires(ctx => ctx.android).do(async ctx => {
 
         // Stop if no current device or if it's not an android device
         if (!ctx.device || !ctx.device.id.startsWith('android:'))
@@ -26,7 +26,11 @@ module.exports = runner => {
 
     //
     // Get list of attached devices
-    runner.register('devices.android').before('devices').name('Get connected devices').allowFail().do(async ctx => {
+    runner.register('devices.android').before('devices').name('Get connected Android devices').allowFail().do(async ctx => {
+
+        // Stop if no Android SDK
+        if (!ctx.android)
+            return
 
         // Get output from adb
         let txt = await ctx.android.adb('devices')
@@ -40,8 +44,7 @@ module.exports = runner => {
                 id: 'android:' + deviceID,
                 serial: deviceID,
                 name: deviceID + ' (no info)',
-                runTask: 'run.android',
-                platform: 'Android'
+                platform: 'android'
             }
 
             // Try fetch device info
