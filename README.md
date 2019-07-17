@@ -1,18 +1,20 @@
-# React Native Do
 
-This is an experimental replacement for the standard CLI that comes with react-native. 
-The difference with this tool is that the **native folders are temporary,** and hidden away
-from app creators.
 
-If you'd like to create a react native app but don't want to work with any native code, give
-this tool a try!
+<h1 align="center">
+  <img src="logo.png"/><br>
+  React Native Boot
+</h1>
+
+React Native Boot is an experimental CLI tool for building and running react native apps _without ever
+seeing any native code or configuration._ If you like the idea of a pure Javascript React Native app,
+give it a try!
 
 ## New project setup (NOT IMPLEMENTED YET)
 
 To create a new react-native project, make sure you have [Node](https://nodejs.org) installed, and then run:
 
 ``` sh
-npx react-native-do new.project
+npx react-native-boot new
 ```
 
 ## Add to existing project
@@ -20,32 +22,37 @@ npx react-native-do new.project
 To add this library to your existing project:
 
 - Remove all native-specific folders from your project like `ios/`, `android/` etc
-- Install: `npm install --save-dev github:jjv360/react-native-do`
+- Install: `npm install --save-dev github:ydangleapps/react-native-boot`
 - Update your scripts. In your `package.json`, change the `scripts` section to:
 
 ``` json
 {
     ...
     "scripts": {
-        "start": "node ./node_modules/react-native-do/cli.js",
-        "do": "node ./node_modules/react-native-do/cli.js"
+        "start": "node ./node_modules/react-native-boot/cli.js",
+        "boot": "node ./node_modules/react-native-boot/cli.js"
     }
 }
 ```
 
 ## Usage
 
-Now that you have the tool installed, you can run any of the commands by doing `npm start <CMD>`, or `yarn do <CMD>`. See below for a list of available commands.
+Now that you have the tool installed, you can run your app with `npm start`. You can also run any of the commands by doing `npm run boot <CMD>`, or `yarn boot <CMD>`. See below for a list of available commands.
 
 Command         | Description
 ----------------|---------------------
-`run`           | Builds and runs your app.
+`run`           | Builds and runs your app. If no `<CMD>` is specified, this is the default task which is run.
 `devices`       | Lists available devices and allows you to to choose which one to run your app on.
-`build`         | Build an executable for each platform.
-`publish`       | Publish to the app stores
+`build`         | Build an executable for each platform. _(NOT IMPLEMENTED)_
+`publish`       | Publish to the app stores. _(NOT IMPLEMENTED)_
 `setup`         | This is run the first time you `run` your app, but if you want to change any options you can run it again.
 `info`          | Display information about your app.
 
 ## Contributing and extending
 
-All contributions are welcome! [Here](About.md) is a description of how the task management system works, which allows tasks to be added by this package, or by included packages, or by the main project itself.
+All contributions are welcome! [Here](About.md) is a description of how the task management system works, which allows tasks to be collected from this package, or from the project's dependecies, or from the project itself.
+
+The goal of this tool is to provide a no-config way of linking native libraries and running the app. Ideally
+installing a new react-native library into your project should be seamless. This means that any libraries which don't follow the standard project layout or have a special install process, needs a custom run task to be used with this tool automatically.
+
+We include a collection of run tasks for well known libraries. If you encounter a library which does not install automatically, please submit an issue, or submit a PR with a run task. If you're a library creator, you can also include a run task directly in your library, like in [this example](src/external/react-native-navigation.rntask.js).

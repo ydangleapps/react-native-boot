@@ -1,9 +1,9 @@
 {
-  "name": "react-native-do",
+  "name": "react-native-boot",
   "version": "1.0.0",
   "description": "Simpler CLI tools for React Native projects.",
   "main": "cli.js",
-  "repository": "https://github.com/jjv360/react-native-do",
+  "repository": "https://github.com/ydangleapps/react-native-boot",
   "author": "jjv360",
   "license": "MIT",
   "private": false,

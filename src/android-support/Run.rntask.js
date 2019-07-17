@@ -35,7 +35,7 @@ module.exports = runner => {
         // ctx.status('Starting Javascript bundler...')
         // let config = await Metro.loadConfig()
         // config.server.port = 8081
-        // // config.resolver.blacklistRE = /(node_modules[\\\\]react[\\\\]dist[\\\\].*|website\\node_modules\\.*|heapCapture\\bundle\.js|.*\\__tests__\\.*|node_modules[\\\/]react-native-do[\\\/].*)$/
+        // // config.resolver.blacklistRE = /(node_modules[\\\\]react[\\\\]dist[\\\\].*|website\\node_modules\\.*|heapCapture\\bundle\.js|.*\\__tests__\\.*|node_modules[\\\/]react-native-boot[\\\/].*)$/
         // console.log(config)
         // let metro = await Metro.runMetro(config)
 
