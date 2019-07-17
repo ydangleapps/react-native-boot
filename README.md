@@ -27,13 +27,10 @@ To add this library to your existing project:
 - Install: `npm install --save-dev github:ydangleapps/react-native-boot`
 - Update your scripts. In your `package.json`, change the `scripts` section to:
 
-``` json
-{
-    ...
-    "scripts": {
-        "start": "node ./node_modules/react-native-boot/cli.js",
-        "boot": "node ./node_modules/react-native-boot/cli.js"
-    }
+```
+"scripts": {
+    "start": "node ./node_modules/react-native-boot/cli.js",
+    "boot": "node ./node_modules/react-native-boot/cli.js"
 }
 ```
 
