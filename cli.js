@@ -78,7 +78,7 @@ async function main() {
 
     // Run requested task
     var args = process.argv.slice(process.execArgv.length + 2)
-    var taskName = args[0] || 'help'
+    var taskName = args[0] || 'run'
     verbose = args[1] == 'verbose'
     await taskRunner.run(taskName)
 
