@@ -12,9 +12,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
+import android.support.multidex.MultiDex;
+
 /*INJECT_LIB_INCLUDES*/
 
 public class MainApplication extends Application implements ReactApplication {
+
+  @Override
+  protected void attachBaseContext(Context base) {
+    MultiDex.install(this);
+    super.attachBaseContext(base);
+  }
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
     @Override
