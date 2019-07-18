@@ -41,6 +41,7 @@ async function main() {
     taskRunner.contextTemplate.project = {}
     taskRunner.contextTemplate.project.path = projectPath
     taskRunner.contextTemplate.project.info = require(path.resolve(projectPath, 'package.json'))
+    taskRunner.contextTemplate.project.appInfo = {}
 
     // Platform object, extended by platform plugins
     taskRunner.contextTemplate.platforms = {}

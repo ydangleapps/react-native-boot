@@ -21,12 +21,24 @@ module.exports = runner => runner.register().name('Add console helpers').before(
 
     }
 
-    // Add function to select an item from a list. `items` is an array of objects with `{ name, value }` and the selected `value` is returned.
+    // Add function to select an item from a list. `choices` is an array of objects with `{ name, value }` and the selected `value` is returned.
     ctx.console.select = async ({ question, choices }) => {
 
         // Ask
         let answers = await inquirer.prompt([
             { type: 'list', name: 'value', message: question, choices }
+        ])
+        
+        return answers.value
+
+    }
+
+    // Add function to select multiple items from a list. `choices` is an array of objects with `{ name, value, checked }` and the selected `[value]` is returned as an aray.
+    ctx.console.selectMultiple = async ({ question, choices }) => {
+
+        // Ask
+        let answers = await inquirer.prompt([
+            { type: 'checkbox', name: 'value', message: question, choices }
         ])
         
         return answers.value

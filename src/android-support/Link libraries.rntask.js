@@ -9,6 +9,16 @@ const rimraf = require('rimraf')
 module.exports = runner => {
 
     //
+    // Add linking configuration options
+    runner.register().after('_init.android').do(ctx => {
+
+        // Allows libraries to override auto linking for a library by doing `ctx.android.linking.skip['my-lib'] = true`
+        ctx.android.linking = {}
+        ctx.android.linking.skip = {}
+
+    })
+
+    //
     // Update android native project to reference the included libraries
     runner.register('prepare.android.link').after('prepare.android').name('Link libraries').do(async ctx => {
 
@@ -35,10 +45,8 @@ module.exports = runner => {
             // Get project info
             let androidLibPath = path.resolve(ctx.project.path, file, '..')
             let androidLibName = require(path.resolve(androidLibPath, '../package.json')).name
+            if (ctx.android.linking.skip[androidLibName]) continue
             ctx.status('Linking ' + chalk.cyan(androidLibName))
-
-            // Strip funny chars for the android project name
-            let androidProjectName = androidLibName.replace(/[@\/\\:;"'\(\)\[\]]/g, '')
 
             // Find Java package file and read it
             let packageName = ''
@@ -63,55 +71,11 @@ module.exports = runner => {
                 continue
             }
 
-            // Check if the lib needs to be updated to AndroidX
-            // let oldAndroidSupport = await ctx.files.contains(path.resolve(androidLibPath, '**/*.java'), 'import android.support.')
-            // if (oldAndroidSupport) {
-                
-                // // Make a copy
-                // ctx.status('Library ' + chalk.cyan(androidLibName) + ' is ' + chalk.yellow('not using AndroidX'))
-                // let newPath = path.resolve(ctx.tempPath, 'android-' + androidProjectName)
-                // if (await fs.exists(newPath)) rimraf
-                // await fs.copy(androidLibPath, newPath)
-                // androidLibPath = newPath
-
-                // // Set a config so it uses jetify
-                // await fs.writeFile(path.resolve(androidLibPath, 'gradle.properties'), `
-                //     android.useAndroidX=false
-                //     android.enableJetifier=false
-                // `)
-                // await fs.appendFile(path.resolve(androidLibPath, 'build.gradle'), `
-                //     dependencies {
-                //         implementation 'com.android.support:support-v4:27.0.2' // v4
-                //         implementation 'com.android.support:appcompat-v7:23.2.0' // v7
-                //         implementation 'com.android.support:support-v13:23.2.0' //v13
-                //     }`
-                // )
-                
-            // }
-
             // Add to build process
-            replace.sync({ 
-                files: path.resolve(ctx.android.path, 'settings.gradle'), 
-                from: "include ':app'",
-                to: `include ':${androidProjectName}'\nproject(':${androidProjectName}').projectDir = new File('${androidLibPath.replace(/\\/g, '\\\\')}')\ninclude ':app'`
-            })
-            replace.sync({ 
-                files: path.resolve(ctx.android.path, 'app/build.gradle'), 
-                from: "/*PROJECT_DEPS_INJECT*/",
-                to: `/*PROJECT_DEPS_INJECT*/\n    implementation project(':${androidProjectName}')`
-            })
+            ctx.android.injectProject(androidLibName, androidLibPath)
 
             // Link in the app code
-            replace.sync({ 
-                files: path.resolve(ctx.android.path, '**/MainApplication.java'), 
-                from: "/*INJECT_LIB_INCLUDES*/",
-                to: `/*INJECT_LIB_INCLUDES*/\nimport ${packageInclude}.${packageName};`
-            })
-            replace.sync({ 
-                files: path.resolve(ctx.android.path, '**/MainApplication.java'), 
-                from: "/*INJECT_LIB_PACKAGES*/",
-                to: `/*INJECT_LIB_PACKAGES*/\n      packages.add(new ${packageName}());`
-            })
+            ctx.android.injectRNPackage(packageInclude, packageName)
 
         }
 

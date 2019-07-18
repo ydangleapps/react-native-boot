@@ -45,4 +45,17 @@ module.exports = runner => runner.register().name('Add property helpers').before
 
     }
 
+    // Add project getter
+    ctx.project.get = function(key) {
+        return ctx.project.appInfo[key]
+    }
+
+    // Add project info saver
+    ctx.project.save = function() {
+
+        // Write to file
+        fs.writeFileSync(path.resolve(ctx.project.path, 'app.json'), JSON.stringify(ctx.project.appInfo, null, 4))
+
+    }
+
 })

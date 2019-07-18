@@ -9,6 +9,7 @@ buildscript {
         supportLibVersion = "28.0.0"
     }
     repositories {
+        /*INJECT_REPOS*/
         google()
         jcenter()
     }
@@ -24,6 +25,7 @@ buildscript {
 
 allprojects {
     repositories {
+        /*INJECT_REPOS*/
         mavenLocal()
         google()
         jcenter()
