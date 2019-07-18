@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Simpler CLI tools for React Native projects.",
   "main": "cli.js",
+  "bin": "cli.js",
   "repository": "https://github.com/ydangleapps/react-native-boot",
   "author": "jjv360",
   "license": "MIT",
