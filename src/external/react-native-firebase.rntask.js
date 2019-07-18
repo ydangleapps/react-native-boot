@@ -15,7 +15,7 @@ module.exports = runner => {
         if (!await fs.exists(jsonPath))
             throw new Error(`The file ${chalk.cyan('metadata/google-services-android.json')} was not found. Please go to the Firebase console > Project Settings > Add Android and download the google-services.json file. Then, copy it to this path in your project.`)
 
-        // Inject classpath
+        // Inject gradle changes
         ctx.status('Modifying native code...')
         await fs.copyFile(
             jsonPath,
@@ -33,7 +33,25 @@ module.exports = runner => {
         replace.sync({
             files: path.resolve(ctx.android.path, 'app/build.gradle'),
             from: "/*PROJECT_DEPS_INJECT*/",
-            to: "/*PROJECT_DEPS_INJECT*/\n    // Firebase dependencies\n    implementation 'com.google.android.gms:play-services-base:16.1.0'\n    implementation 'com.google.firebase:firebase-core:16.0.9'"
+            to: `/*PROJECT_DEPS_INJECT*/
+
+    // Firebase dependencies
+    implementation 'com.google.android.gms:play-services-base:16.1.0'
+    implementation 'com.google.android.gms:play-services-ads:16.0.0'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
+    `
+        })
+
+        // Modify firebase build script to reference React Native's correct location
+        replace.sync({
+            files: path.resolve(ctx.project.path, 'node_modules/react-native-firebase/android/build.gradle'),
+            from: /parentDir,.*?'node_modules\/react-native'/s,
+            to: `'${path.resolve(ctx.project.path, 'node_modules/react-native').replace(/\\/g, '\\\\')}'`
+        })
+        replace.sync({
+            files: path.resolve(ctx.project.path, 'node_modules/react-native-firebase/android/build.gradle'),
+            from: /parentDir,.*?'node_modules\/react-native\/android'/s,
+            to: `'${path.resolve(ctx.project.path, 'node_modules/react-native/android').replace(/\\/g, '\\\\')}'`
         })
 
     })
