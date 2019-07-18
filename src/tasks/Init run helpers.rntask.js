@@ -50,6 +50,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
         }
 
         // Run it
+        console.log(mpath)
         return ctx.run(`node "${mpath}" ${args}`, opts)
 
     }

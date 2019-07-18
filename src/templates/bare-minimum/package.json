@@ -9,9 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "react": "16.8.6",
-    "react-native": "0.59.10"
-  },
-  "devDependencies": {
+    "react-native": "0.59.10",
     "react-native-boot": "github:ydangleapps/react-native-boot"
   }
 }
