@@ -1,6 +1,6 @@
 
 const chalk = require('chalk')
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const ChildProcess = require('child_process')
 const TaskRunner = require('./src/TaskRunner')
@@ -26,7 +26,7 @@ async function main() {
     while (true) {
 
         // Check if package.json exists
-        if (fs.existsSync(path.resolve(projectPath, 'package.json')))
+        if (await fs.exists(path.resolve(projectPath, 'package.json')))
             break
 
         // Go up one, fail if we're at the top
@@ -54,7 +54,8 @@ async function main() {
     }
 
     // Add a temporary path for tasks to use. This can be used as a cache directory between runs on the same machine.
-    taskRunner.contextTemplate.tempPath = path.resolve(await fs.promises.realpath(os.tmpdir()), 'react-native', taskRunner.contextTemplate.project.appInfo.name || 'NoName')
+    taskRunner.contextTemplate.tempPath = path.resolve(await fs.realpath(os.tmpdir()), 'react-native', taskRunner.contextTemplate.project.appInfo.name || 'NoName')
+    await fs.ensureDir(taskRunner.contextTemplate.tempPath)
 
     // Load all tasks in all modules in the project
     console.log('Loading tasks...')

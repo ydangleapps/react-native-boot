@@ -31,14 +31,13 @@ To add this library to your existing project:
 
 ```
 "scripts": {
-    "start": "node ./node_modules/react-native-boot/cli.js",
-    "boot": "node ./node_modules/react-native-boot/cli.js"
+    "start": "node ./node_modules/react-native-boot/cli.js"
 }
 ```
 
 ## Usage
 
-Now that you have the tool installed, you can run your app with `npm start`. You can also run any of the commands by doing `npm run boot <CMD>`, or `yarn boot <CMD>`. See below for a list of available commands.
+Now that you have the tool installed, you can run your app with `npm start`. You can also run any of the commands by doing `npm start <CMD>`. See below for a list of available commands.
 
 Command         | Description
 ----------------|---------------------
