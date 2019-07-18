@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
+import android.content.Context;
 import android.support.multidex.MultiDex;
 
 /*INJECT_LIB_INCLUDES*/

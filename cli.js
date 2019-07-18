@@ -32,35 +32,18 @@ async function main() {
         // Go up one, fail if we're at the top
         let last = projectPath
         projectPath = path.resolve(projectPath, '..')
-        if (projectPath == last)
-            throw new Error(`No ${chalk.blue('package.json')} found, are you in a react-native project?`)
+        if (projectPath == last) {
+            projectPath = null
+            break
+        }
 
     }
-
-    // Add useful vars onto the context
-    taskRunner.contextTemplate.project = {}
-    taskRunner.contextTemplate.project.path = projectPath
-    taskRunner.contextTemplate.project.info = require(path.resolve(projectPath, 'package.json'))
-    taskRunner.contextTemplate.project.appInfo = {}
-
-    // Platform object, extended by platform plugins
-    taskRunner.contextTemplate.platforms = {}
-
-    // Read app information
-    try {
-        taskRunner.contextTemplate.project.appInfo = require(path.resolve(projectPath, 'app.json'))
-    } catch (err) {
-        console.warn(err)
-    }
-
-    // Add a temporary path for tasks to use. This can be used as a cache directory between runs on the same machine.
-    taskRunner.contextTemplate.tempPath = path.resolve(await fs.realpath(os.tmpdir()), 'react-native', taskRunner.contextTemplate.project.appInfo.name || 'NoName')
-    await fs.ensureDir(taskRunner.contextTemplate.tempPath)
 
     // Load all tasks in all modules in the project
     console.log('Loading tasks...')
+    let ctx = taskRunner.createContext()
     let files = await new Promise((resolve, reject) => glob('**/*.rntask.js', {
-        cwd: projectPath,
+        cwd: projectPath || __dirname,
         follow: true
     }, (err, matches) => {
         if (err) reject(err)
@@ -72,20 +55,35 @@ async function main() {
 
         // Load, catch errors
         try {
-            let func = require(path.resolve(projectPath, file))
+            let func = require(path.resolve(projectPath || __dirname, file))
             if (typeof func != 'function') throw new Error('Exported item is not a function.')
-            func(taskRunner)
+            func(taskRunner, ctx)
         } catch (err) {
             console.warn(chalk.red('Task error: ') + file + ': ' + err.message)
         }
 
     }
 
-    // Run requested task
+    // Check if task can be run
     var args = process.argv.slice(process.execArgv.length + 2)
     var taskName = args[0] || 'run'
     verbose = args[1] == 'verbose'
-    await taskRunner.run(taskName)
+    if (!taskRunner.tasks[taskName])
+        throw new Error(`The task ${chalk.cyan(taskName)} was not found.`)
+
+    // Store CLI context information
+    ctx.cli = {}
+    ctx.cli.task = taskName
+    ctx.cli.projectPath = projectPath
+
+    // Run initialization
+    await taskRunner.run('_init', ctx)
+
+    // Run requested task
+    await taskRunner.run(taskName, ctx)
+
+    // Platform object, extended by platform plugins
+    taskRunner.contextTemplate.platforms = {}
 
 }
 
@@ -96,8 +94,10 @@ setTimeout(e => {
     main().catch(err => {
 
         // If not verbose, print simple error
-        if (!verbose)
+        if (!verbose && taskRunner.errorStack)
             return console.log(chalk.blue(taskRunner.errorStack.map(id => taskRunner.tasks[id].taskName || id).join(' > ') + ': ') + chalk.red('Failed: ') + err.message)
+        if (!verbose)
+            return console.log(chalk.red('Failed: ') + err.message)
 
         // Print error, if there's a task stack involved
         if (taskRunner.errorStack)

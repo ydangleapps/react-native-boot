@@ -14,7 +14,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
     ctx.run = (cmd, opts) => {
         
         // Start process
-        let process = ChildProcess.spawn(cmd, [], Object.assign({ stdio: 'inherit', shell: true, cwd: ctx.project.path, env: ctx.env }, opts))
+        let process = ChildProcess.spawn(cmd, [], Object.assign({ stdio: 'inherit', shell: true, cwd: ctx.project && ctx.project.path || '.', env: ctx.env }, opts))
 
         // Wait for process to finish
         return new Promise((resolve, reject) => {
@@ -62,7 +62,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
 
             // Run process
             ChildProcess.exec(cmd, Object.assign({
-                cwd: ctx.project.path,
+                cwd: ctx.project && ctx.project.path || '.',
                 env: ctx.env
             }, opts), (error, stdout, stderr) => {
 
@@ -82,7 +82,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
     ctx.runStream = (cmd, opts, callback) => {
 
         // Start process
-        let process = ChildProcess.spawn(cmd, [], Object.assign({ shell: true, cwd: ctx.project.path, env: ctx.env }, opts))
+        let process = ChildProcess.spawn(cmd, [], Object.assign({ shell: true, cwd: ctx.project && ctx.project.path || '.', env: ctx.env }, opts))
 
         // Handle text out
         let buffer = ""
@@ -121,14 +121,6 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
                 else resolve()
             })
         })
-
-    }
-
-    // Check if the project uses the specified module
-    ctx.project.uses = moduleName => {
-
-        let json = require(path.resolve(ctx.project.path, 'package.json'))
-        return !!(json.dependencies[moduleName] || json.devDependencies[moduleName])
 
     }
 

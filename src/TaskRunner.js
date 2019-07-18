@@ -47,6 +47,18 @@ module.exports = class TaskRunner {
         return this.tasks[id] && this.tasks[id].taskName || id
     }
 
+    createContext() {
+
+        // Create context
+        let ctx = {}
+        Object.assign(ctx, {
+            status: txt => console.log(chalk.blue(ctx.stack.map(id => this.tasks[id].taskName || id).join(' > ') + ': ') + txt),
+            warning: txt => ctx.status(chalk.yellow('Warning: ') + txt)
+        }, this.contextTemplate)
+        return ctx
+
+    }
+
     async run(id, _context) {
 
         // Prepare context if needed
@@ -54,17 +66,10 @@ module.exports = class TaskRunner {
         if (!ctx) {
             
             // Create context
-            ctx = Object.assign({
-                status: txt => console.log(chalk.blue(ctx.stack.map(id => this.tasks[id].taskName || id).join(' > ') + ': ') + txt),
-                warning: txt => ctx.status(chalk.yellow('Warning: ') + txt)
-            }, this.contextTemplate)
+            ctx = this.createContext()
 
             // Clear error stack
             this.errorStack = null
-
-            // Run the initialization internal task
-            if (this.tasks['_init'])
-                await this.run('_init', ctx)
 
         }
 
@@ -146,6 +151,7 @@ class Task {
         this.afterTasks = []
         this.code = null
         this.requireChecks = []
+        this.needsProject = true
     }
 
     /** Sets the task's human friendly name. */
@@ -190,6 +196,12 @@ class Task {
     /** Allow the task to fail, it will instead just output a warning. */
     allowFail() {
         this.taskAllowFail = true
+        return this
+    }
+
+    /** If false, this command can be run outside of a project. */
+    requiresProject(b) {
+        this.needsProject = b
         return this
     }
 

@@ -1,0 +1,17 @@
+{
+  "name": "HelloWorld",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./node_modules/react-native-boot/cli.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-native": "^0.59.10"
+  },
+  "devDependencies": {
+    "react-native-boot": "github:ydangleapps/react-native-boot"
+  }
+}

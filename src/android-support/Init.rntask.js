@@ -34,7 +34,7 @@ module.exports = runner => {
 
     //
     // Add android project settings to the context
-    runner.register('_init.android').name('Android').after('_init').requires(async ctx => {
+    runner.register('_init.android').name('Android').after('_init').requires(ctx => ctx.project).requires(async ctx => {
 
         // Make sure SDK exists
         if (!sdkRoot) {
@@ -63,6 +63,8 @@ module.exports = runner => {
         // Get path to Android project
         ctx.android.path = path.resolve(ctx.tempPath, 'android')
         ctx.android.packageName = ctx.property('packageID.android')
+        if (!ctx.android.packageName)
+            ctx.android.packageName = 'com.' + ctx.property('name.android')
 
         // Add ADB run command
         ctx.android.adb = function(args) {

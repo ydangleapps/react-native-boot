@@ -1,5 +1,3 @@
-//
-// This file aims to rebuild the native part of this project, including all the funny stuff required by libraries and react-native itself.
 
 const chalk = require('chalk')
 
