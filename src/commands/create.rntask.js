@@ -25,7 +25,7 @@ module.exports = runner => {
             // Replace vars in files
             replace.sync({
                 files: path.resolve(ctx.create.path, '**\*'),
-                from: /HelloWorld/,
+                from: /HelloWorld/g,
                 to: ctx.create.name
             })
 
