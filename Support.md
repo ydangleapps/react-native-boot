@@ -11,9 +11,10 @@ Current react native version: 0.59.10
 
 Library                         | Version   | Android   | iOS   | Windows   | Build task
 --------------------------------|-----------|-----------|-------|-----------|------------------
-react-native-boot-android       |           | ✓         |       |           | _(embedded)_ Adds platform support for Android.
-react-native-boot-ios           |           |           | x     |           | _(embedded)_ Adds platform support for iOS
-react-native-boot-windows       |           |           |       | x         | _(embedded)_ Adds platform support for Windows UWP
+react-native-boot-android       |           | ✓         |       |           | Adds platform support for Android.
+react-native-boot-ios           |           |           |       |           | Adds platform support for iOS
+react-native-boot-windows       |           |           |       |           | Adds platform support for Windows UWP
+react-native-firebase           | 5.5.5     | ✓         |       |           | Modifies the native project code structure. (could cause conflicts)
 react-native-image-picker       | 0.28.1    | ✓         |       |           | Adds missing permissions.
 react-native-navigation         | 2.22.3    | ✓         |       |           | Modifies the native project code structure. (could cause conflicts)
 react-native-zeroconf           | 0.11.0     | ✓         |       |           | Adds missing Android permissions

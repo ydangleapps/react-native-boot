@@ -9,7 +9,6 @@ const which = require('which')
 // Find an executable on the path and return a relative path to it, or return "executable-not-found"
 function whichExe(name, resolvePath) {
     try {
-        console.log(name, which.sync(name), resolvePath, path.resolve(which.sync(name), resolvePath))
         return path.resolve(which.sync(name), resolvePath)
     } catch (err) {
         return "executable-not-found"

@@ -51,9 +51,9 @@ Command         | Description
 
 ## Contributing and extending
 
-All contributions are welcome! [Here](About.md) is a description of how the task management system works, which allows tasks to be collected from this package, or from the project's dependecies, or from the project itself.
+All contributions are welcome!  [Here](Recipes.md) is a collection of example tasks, and [here](About.md) is a description of how the task management system works, which allows tasks to be collected from this package, or from the project's dependecies, or from the project itself.
 
 The goal of this tool is to provide a no-config way of linking native libraries and running the app. Ideally
 installing a new react-native library into your project should be seamless. This means that any libraries which don't follow the standard project layout or have a special install process, needs a custom run task to be used with this tool automatically.
 
-We include a collection of run tasks for well known libraries. If you encounter a library which does not install automatically, please submit an issue, or submit a PR with a run task. If you're a library creator, you can also include a run task directly in your library, like in [this example](src/external/react-native-navigation.rntask.js).
+We include a collection of run tasks for well known libraries. If you encounter a library which does not install automatically, please submit an issue, or submit a PR with a run task. If you're a library creator, you can also include a run task directly in your library.

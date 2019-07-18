@@ -5,7 +5,7 @@ const replace = require('replace-in-file')
 module.exports = runner => {
     
     // HACK: Android permissions. Normally this should be added to the lib's AndroidManifest.xml
-    runner.register('react-native-image-picker').after('prepare.android').requires(ctx => ctx.project.uses('react-native-image-picker')).do(async ctx => {
+    runner.register('react-native-image-picker').after('prepare.android.link').requires(ctx => ctx.project.uses('react-native-image-picker')).do(async ctx => {
 
         // TODO: Better Android permission handling
 
