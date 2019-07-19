@@ -15,9 +15,6 @@ module.exports = runner => {
         ctx.status('Building...')
         await ctx.android.gradle('app:assembleDebug')
 
-        // Start Metro bundler through CLI
-        ctx.runNode('react-native', 'start')
-
         // Create metro config
         // let config = {
         //     projectRoot: ctx.project.path,
@@ -48,9 +45,36 @@ module.exports = runner => {
         // })
         // server.listen(config.server.port)
 
-        // Install to device
-        ctx.status('Installing to device...')
-        await ctx.android.adb(`-s ${ctx.device.serial} install "${path.resolve(ctx.android.path, 'app/build/outputs/apk/debug/app-debug.apk')}"`)
+        try {
+
+            // Install to device
+            ctx.status('Installing to device...')
+            await ctx.android.adb(`-s ${ctx.device.serial} install "${path.resolve(ctx.android.path, 'app/build/outputs/apk/debug/app-debug.apk')}"`)
+
+        } catch (err) {
+
+            // Check if error is an incompatible signature, which often occurs when the debug certificate changes.
+            if (!err.message.includes('signatures do not match'))
+                throw err
+
+            // Ask the user if they want to uninstall the old app
+            ctx.warning('The app already exists on the target device, but the signatures do not match!')
+            let confirm = await ctx.console.confirm({ question: 'Would you like to uninstall the previous version? (app data will be lost)' })
+            if (!confirm)
+                throw new Error('Unable to install updated app onto the device.')
+
+            // Uninstall old app
+            ctx.status('Uninstalling previous version...')
+            await ctx.android.adb(`-s ${ctx.device.serial} uninstall ${ctx.android.packageName}`)
+
+            // Try install again now
+            ctx.status('Installing new version...')
+            await ctx.android.adb(`-s ${ctx.device.serial} install "${path.resolve(ctx.android.path, 'app/build/outputs/apk/debug/app-debug.apk')}"`)
+
+        }
+
+        // Start Metro bundler through CLI
+        ctx.runNode('react-native', 'start')
 
         // Forward TCP port to the device
         await ctx.android.adb(`-s ${ctx.device.serial} reverse tcp:8081 tcp:8081`)
