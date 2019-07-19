@@ -28,6 +28,11 @@ module.exports = runner => {
                 from: /HelloWorld/g,
                 to: ctx.create.name
             })
+            replace.sync({
+                files: path.resolve(ctx.create.path, '**\*'),
+                from: /Hello World Display Name/g,
+                to: ctx.create.displayName
+            })
 
         }
 
