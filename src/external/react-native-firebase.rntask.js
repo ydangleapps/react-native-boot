@@ -50,7 +50,7 @@ module.exports = runner => {
             if (name == 'links') {
 
                 // Ask user for hostname
-                ctx.project.appInfo.links = {
+                ctx.project.appInfo.firebase.links = {
                     host: await ctx.console.ask({ question: 'Enter deep link host name', defaultValue: 'example.com' })
                 }
 
@@ -124,7 +124,7 @@ module.exports = runner => {
     runner.register('firebase.android.analytics').do(async ctx => {
         await ctx.android.injectRNPackage('io.invertase.firebase.analytics', 'RNFirebaseAnalyticsPackage')
     })
-    runner.register('firebase.android.authentication').do(async ctx => {
+    runner.register('firebase.android.auth').do(async ctx => {
         await ctx.android.injectDependency("implementation 'com.google.firebase:firebase-auth:17.0.0'")
         await ctx.android.injectRNPackage('io.invertase.firebase.auth', 'RNFirebaseAuthPackage')
     })
