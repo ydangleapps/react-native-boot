@@ -20,6 +20,7 @@ module.exports = runner => runner.register('run').name('Run').do(async ctx => {
         await runner.run('devices', ctx)
 
     // Recreate native folders if necessary
+    await runner.run(`prepare.check`, ctx)
     await runner.run(`prepare.${ctx.device.platform}.check`, ctx)
     if (ctx.prepareNeeded)
         await runner.run(`prepare.${ctx.device.platform}`, ctx)
