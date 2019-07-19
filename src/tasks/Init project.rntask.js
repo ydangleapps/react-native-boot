@@ -17,7 +17,6 @@ module.exports = runner => {
             return
 
         // Add project vars onto the context
-        console.log(ctx.cli.projectPath)
         ctx.project = {}
         ctx.project.path = ctx.cli.projectPath
         ctx.project.info = require(path.resolve(ctx.cli.projectPath, 'package.json'))

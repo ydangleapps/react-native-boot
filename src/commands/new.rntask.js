@@ -35,12 +35,18 @@ module.exports = runner => {
 
     //
     // Command for generating a new template
-    runner.register('create').name('Create').requiresProject(false).do(async ctx => {
+    runner.register('new').name('New').requiresProject(false).do(async ctx => {
 
-        // Check project name
+        // Get project name
         ctx.create = {}
-        ctx.create.name = process.argv[3]
-        if (!ctx.create.name) throw new Error("Please specify the name of your project, ie " + chalk.cyan('npx react-native-boot create MyApp'))
+        ctx.create.displayName = await ctx.console.ask({ question: 'Enter the name for your new project:', defaultValue: 'My App' })
+        if (!ctx.create.displayName) 
+            throw new Error("Invalid name.")
+
+        // Create project name from display name
+        ctx.create.name = ctx.create.displayName.toLowerCase().replace(/\W/g, '-')
+
+        // Create project path
         ctx.create.path = path.resolve(process.cwd(), ctx.create.name)
 
         // Ask user which template to use
@@ -51,6 +57,12 @@ module.exports = runner => {
                 value: t
             }))
         })
+
+        // Confirm one last time
+        ctx.status(`You are about to create a new ${chalk.cyan(template.name)} at ${chalk.cyan(ctx.create.path)}.`)
+        let confirm = await ctx.console.confirm({ question: 'Create it now?' })
+        if (!confirm)
+            return
 
         // Run the chosen creation task
         await template.create()

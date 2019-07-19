@@ -2,7 +2,7 @@
 
 Here a collection of example run tasks for different cases. App creators can create run tasks directly in their project, and library creators can create run tasks in their libraries.
 
-To create a run task, create a file with a `.rntask.js` extension. It will be automatically picked up.
+To create a run task, create a file with a `.rntask.js` extension. It will be automatically loaded.
 
 ### Require a minimum Android SDK target:
 

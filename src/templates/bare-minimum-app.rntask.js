@@ -5,11 +5,11 @@ module.exports = runner => {
 
     //
     // Register template
-    runner.register().before('create').do(ctx => {
+    runner.register().before('new').do(ctx => {
         ctx.templates.push({
-            name: 'Bare Minimum',
+            name: 'Bare minimum app',
             create: async e => ctx.createFromTemplate({
-                source: path.resolve(__dirname, './bare-minimum')
+                source: path.resolve(__dirname, './bare-minimum-app')
             })
         })
     })
