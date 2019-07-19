@@ -10,11 +10,23 @@ module.exports = runner => runner.register().name('Add console helpers').before(
     ctx.console = {}
 
     // Add function to ask the user a question
-    ctx.console.ask = async ({ question, defaultValue }) => {
+    ctx.console.ask = async ({ question, defaultValue, type }) => {
 
         // Ask
         let answers = await inquirer.prompt([
-            { type: 'input', name: 'value', message: question, default: defaultValue }
+            { type: type || 'input', name: 'value', message: question, default: defaultValue }
+        ])
+        
+        return answers.value
+
+    }
+
+    // Add function to ask the user a yes/no question
+    ctx.console.confirm = async ({ question, defaultValue }) => {
+
+        // Ask
+        let answers = await inquirer.prompt([
+            { type: 'confirm', name: 'value', message: question, default: defaultValue }
         ])
         
         return answers.value

@@ -43,7 +43,7 @@ Command         | Description
 ----------------|---------------------
 `run`           | Builds and runs your app. If no `<CMD>` is specified, this is the default task which is run.
 `devices`       | Lists available devices and allows you to to choose which one to run your app on.
-`build`         | Build an executable for each platform. _(NOT IMPLEMENTED)_
+`build`         | Build an executable for each platform.
 `publish`       | Publish to the app stores. _(NOT IMPLEMENTED)_
 `setup`         | This is run the first time you `run` your app, but if you want to change any options you can run it again.
 `info`          | Display information about your app.

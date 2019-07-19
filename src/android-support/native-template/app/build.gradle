@@ -121,8 +121,10 @@ android {
             include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
         }
     }
+    /*INJECT_SIGNING_CONFIGS*/
     buildTypes {
         release {
+            /*INJECT_SIGNING_CONFIG_BUILDTYPE*/
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -140,6 +142,7 @@ android {
             }
         }
     }
+
 }
 
 dependencies {

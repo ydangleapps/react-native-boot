@@ -69,7 +69,7 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
 
                 // Fail if error
                 if (error)
-                    reject(stderr ? new Error(stderr) : error)
+                    reject(new Error(stderr || stdout || error.message))
                 else
                     resolve(stdout)
 

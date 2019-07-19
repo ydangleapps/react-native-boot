@@ -60,7 +60,7 @@ async function main() {
             if (typeof func != 'function') throw new Error('Exported item is not a function.')
             func(taskRunner, ctx)
         } catch (err) {
-            console.warn(chalk.red('Task error: ') + file + ': ' + err.message)
+            console.warn(chalk.red('Task error: ') + err.stack)
         }
 
     }
