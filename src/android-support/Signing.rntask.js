@@ -13,7 +13,10 @@ module.exports = runner => {
 
         // Notice
         ctx.status(chalk.yellow('You need to setup signing to build for Android.'))
-
+        let keystorePass = ''
+        let keystoreAlias = ''
+        let keystoreAliasPassword = ''
+        
         // Ask user what they want to do
         let location = await ctx.console.ask({ question: 'Enter path to Android keystore, or leave blank to generate one:' })
         if (!location) {
@@ -28,38 +31,8 @@ module.exports = runner => {
         if (!await fs.exists(location))
             throw new Error('Unable to find Android keystore at ' + chalk.cyan(location))
 
-        // Store it
-        ctx.session.set('android.keystore.path', location)
-        ctx.session.set('android.keystore.password', '')
-        ctx.session.set('android.keystore.alias.name', '')
-        ctx.session.set('android.keystore.alias.password', '')
-
-    })
-
-    //
-    // Prepare signing
-    runner.register('build.android.sign').before('build.android').name('Sign').do(async ctx => {
-
-        // Check session to find signing file
-        let keystorePath = ctx.session.get('android.keystore.path')
-        let keystorePass = ctx.session.get('android.keystore.password')
-        let keystoreAlias = ctx.session.get('android.keystore.alias.name')
-        let keystoreAliasPassword = ctx.session.get('android.keystore.alias.password')
-        if (!keystorePath || !await fs.exists(keystorePath)) {
-
-            // No signing available, run the signing setup
-            ctx.status("No keystore, running signing setup...")
-            await runner.run('setup.android.signing', ctx)
-
-            // If STILL unavailable, stop
-            let keystorePath = ctx.session.get('android.keystore')
-            if (!keystorePath || !await fs.exists(keystorePath))
-                throw new Error("Unable to find keystore for signing.")
-
-        }
-
         // Fetch password if needed
-        ctx.status('Using keystore at ' + chalk.cyan(keystorePath))
+        ctx.status('Using keystore at ' + chalk.cyan(location))
         while (!keystorePass) {
 
             // Ask user for password
@@ -68,9 +41,8 @@ module.exports = runner => {
             // Try load password
             let data = ''
             try {
-                await ctx.runWithOutput(`keytool -list -keystore "${keystorePath}" -storepass "${pwd.replace(/"/g, '\"')}"`)
+                await ctx.runWithOutput(`keytool -list -keystore "${location}" -storepass "${pwd.replace(/"/g, '\"')}"`)
                 keystorePass = pwd
-                ctx.session.set('android.keystore.password', keystorePass)
                 ctx.status('Password accepted!')
                 break
             } catch (err) {
@@ -82,7 +54,7 @@ module.exports = runner => {
 
         // Fetch list of aliases
         if (!keystoreAlias) {
-            await ctx.run(`keytool -list -keystore "${keystorePath}" -storepass "${keystorePass.replace(/"/g, '\"')}"`)
+            await ctx.run(`keytool -list -keystore "${location}" -storepass "${keystorePass.replace(/"/g, '\"')}"`)
             while (true) {
 
                 // Ask user for alias
@@ -91,9 +63,8 @@ module.exports = runner => {
                 // Try load it
                 let data = ''
                 try {
-                    await ctx.runWithOutput(`keytool -list -keystore "${keystorePath}" -storepass "${keystorePass.replace(/"/g, '\"')}" -alias "${alias}"`)
+                    await ctx.runWithOutput(`keytool -list -keystore "${location}" -storepass "${keystorePass.replace(/"/g, '\"')}" -alias "${alias}"`)
                     keystoreAlias = alias
-                    ctx.session.set('android.keystore.alias.name', keystoreAlias)
                     ctx.status('Alias accepted!')
                     break
                 } catch (err) {
@@ -112,9 +83,8 @@ module.exports = runner => {
 
             // Try load password
             try {
-                await ctx.runWithOutput(`keytool -keypasswd -keystore "${keystorePath}" -storepass "${keystorePass.replace(/"/g, '\"')}" -alias "${keystoreAlias}" -keypass "${pwd.replace(/"/g, '\"')}" -new "${pwd.replace(/"/g, '\"')}"`)
+                await ctx.runWithOutput(`keytool -keypasswd -keystore "${location}" -storepass "${keystorePass.replace(/"/g, '\"')}" -alias "${keystoreAlias}" -keypass "${pwd.replace(/"/g, '\"')}" -new "${pwd.replace(/"/g, '\"')}"`)
                 keystoreAliasPassword = pwd
-                ctx.session.set('android.keystore.alias.password', keystoreAliasPassword)
                 ctx.status('Password accepted!')
                 break
             } catch (err) {
@@ -123,6 +93,38 @@ module.exports = runner => {
             }
 
         }
+
+        // Store it
+        ctx.session.set('android.keystore.path', location)
+        ctx.session.set('android.keystore.password', keystorePass)
+        ctx.session.set('android.keystore.alias.name', keystoreAlias)
+        ctx.session.set('android.keystore.alias.password', keystoreAliasPassword)
+
+    })
+
+    //
+    // Prepare signing
+    runner.register('build.android.sign').before('build.android').name('Sign').do(async ctx => {
+
+        // Check session to find signing file
+        let keystorePath = ctx.session.get('android.keystore.path')
+        let keystorePass = ctx.session.get('android.keystore.password')
+        let keystoreAlias = ctx.session.get('android.keystore.alias.name')
+        let keystoreAliasPassword = ctx.session.get('android.keystore.alias.password')
+        if (!keystorePath || !keystorePass || !keystoreAlias || !keystoreAliasPassword || !await fs.exists(keystorePath)) {
+
+            // No signing available, run the signing setup
+            ctx.status("No keystore, running signing setup...")
+            await runner.run('setup.android.signing', ctx)
+
+            // If STILL unavailable, stop
+            let keystorePath = ctx.session.get('android.keystore')
+            if (!keystorePath || !await fs.exists(keystorePath))
+                throw new Error("Unable to find keystore for signing.")
+
+        }
+
+        
 
         // Get project app signing key name
         let signingName = ctx.project.appInfo.name.toUpperCase().replace(/[^0-9a-zA-Z]/g, '_')

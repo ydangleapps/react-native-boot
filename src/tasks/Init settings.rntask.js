@@ -41,7 +41,7 @@ module.exports = runner => runner.register().name('Add property helpers').before
         ctx.session.data[key] = value
 
         // Write to file
-        fs.writeFileSync(path.resolve(ctx.tempPath, 'session.json'), JSON.stringify(ctx.session.data))
+        fs.writeFileSync(path.resolve(ctx.tempPath, 'session.json'), JSON.stringify(ctx.session.data, null, 4))
 
     }
 

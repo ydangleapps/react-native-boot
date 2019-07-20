@@ -4,6 +4,14 @@ const replace = require('replace-in-file')
 const fs = require('fs-extra')
 
 module.exports = runner => {
+
+    //
+    // Add library to info output, since this library does not use the standard layout it won't be detected correctly
+    runner.register('info.react-native-navigation').after('info.android').name('Android').do(async ctx => {
+        ctx.infocmd.libraries['react-native-navigation'] = {
+            platforms: ['android', 'ios']
+        }
+    })
     
     //
     // This lib requires minimum Android SDK 19
