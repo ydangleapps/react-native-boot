@@ -77,7 +77,6 @@ The built-in tasks add the following items to the context:
 Field                           | Type          | Description
 --------------------------------|---------------|--------------------
 `ctx.run(cmd, opts)`            | `function`    | Executes a shell command in the project's root directory. `opts` is any custom params to pass to `child_process.spawn()`.
-`ctx.runNode(module, args)`     | `function`    | Executes a CLI node module. Same as `ctx.run('node <path-to-module> <args>)`
 `ctx.iosPermissions.add(key, text)` | `function` | Adds a text description for the specified permission key. See [here](https://www.iosdev.recipes/info-plist/permissions/) for a list of keys. If `text` is not specified, the build will fail until the project sets a text description, so this can be used by libraries to register that a permission usage description needs to be set without actually setting it.
 `ctx.project`                   | `object`      | Details about the project
 `ctx.project.appInfo`           | `object`      | Contents of the project's `app.json`

@@ -26,35 +26,6 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
 
     }
 
-    // Add a function to run a node module as a command line tool
-    ctx.runNode = async (moduleName, args, opts) => {
-        
-        // Find path to module by Node's module resolution
-        let mpath = ''
-        try {
-            mpath = require.resolve(moduleName)
-        } catch (err) {
-        }
-
-        // Find path to module by reading it from the host app's packages
-        let modulePackagePath = path.resolve(ctx.project.path, 'node_modules', moduleName, 'package.json')
-        if (!mpath && await fs.exists(modulePackagePath)) {
-
-            // Node couldn't resolve, but the package exists in the main project's dependencies, use that
-            let json = JSON.parse(await fs.readFile(modulePackagePath))
-            let rootPath = path.resolve(modulePackagePath, '..')
-            if (await fs.exists(path.resolve(rootPath, json.bin || 'notfound'))) mpath = path.resolve(rootPath, json.bin || 'notfound')
-            if (await fs.exists(path.resolve(rootPath, 'cli.js'))) mpath = path.resolve(rootPath, 'cli.js')
-            if (await fs.exists(path.resolve(rootPath, 'index.js'))) mpath = path.resolve(rootPath, 'index.js')
-
-        }
-
-        // Run it
-        console.log(mpath)
-        return ctx.run(`node "${mpath}" ${args}`, opts)
-
-    }
-
     // Add a function to run a shell process and return the output
     ctx.runWithOutput = (cmd, opts) => {
 

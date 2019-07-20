@@ -74,7 +74,7 @@ module.exports = runner => {
         }
 
         // Start Metro bundler through CLI
-        ctx.runNode('react-native', 'start')
+        ctx.run(`node ./node_modules/react-native/cli.js start`)
 
         // Forward TCP port to the device
         await ctx.android.adb(`-s ${ctx.device.serial} reverse tcp:8081 tcp:8081`)
