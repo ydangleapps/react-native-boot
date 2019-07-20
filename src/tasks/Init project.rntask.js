@@ -37,7 +37,7 @@ module.exports = runner => {
         ctx.project.uses = moduleName => {
 
             let json = require(path.resolve(ctx.project.path, 'package.json'))
-            return !!(json.dependencies[moduleName] || json.devDependencies[moduleName])
+            return !!((json.dependencies && json.dependencies[moduleName]) || (json.devDependencies && json.devDependencies[moduleName]))
 
         }
 
