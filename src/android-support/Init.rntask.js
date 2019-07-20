@@ -65,7 +65,7 @@ module.exports = runner => {
         ctx.android.path = path.resolve(ctx.tempPath, 'android')
         ctx.android.packageName = ctx.property('packageID.android')
         if (!ctx.android.packageName)
-            ctx.android.packageName = 'com.' + ctx.property('name.android')
+            ctx.android.packageName = 'com.' + ctx.property('name.android').replace(/-/g, '')
 
         // Add ADB run command
         ctx.android.adb = function(args) {
