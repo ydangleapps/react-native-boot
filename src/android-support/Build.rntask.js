@@ -8,13 +8,37 @@ module.exports = runner => {
     // Build the Android APK for release
     runner.register('build.android').name('Android').do(async ctx => {
 
+        // Prepare Android projet folder
+        await runner.run('prepare.android', ctx)
+
         // Build for release
         ctx.status('Building...')
         await ctx.android.gradle('app:assembleRelease')
 
-        // Done
-        ctx.build.output = path.resolve(ctx.android.path, 'app/build/outputs/apk/release/app-release-unsigned.apk')
-        ctx.build.outputExt = '-unsigned.apk'
+        // Check for unsigned APK
+        let unsigned = path.resolve(ctx.android.path, 'app/build/outputs/apk/release/app-release-unsigned.apk')
+        if (await fs.exists(unsigned)) {
+
+            // Unsigned app was generated
+            ctx.build.output = unsigned
+            ctx.build.outputExt = '-unsigned.apk'
+            return
+
+        }
+
+        // Check for signed APK
+        let signed = path.resolve(ctx.android.path, 'app/build/outputs/apk/release/app-release.apk')
+        if (await fs.exists(signed)) {
+
+            // Unsigned app was generated
+            ctx.build.output = signed
+            ctx.build.outputExt = '.apk'
+            return
+
+        }
+
+        // Nothing was built!
+        throw new Error('Nothing was generated!')
 
     })
 

@@ -27,17 +27,11 @@ module.exports = runner => {
 
             // Recreate native folders if necessary
             ctx.status('Starting build for ' + chalk.cyan(platform.name))
-            ctx.prepareNeeded = false
-            await runner.run(`prepare.${platformID}.check`, ctx)
-            if (ctx.prepareNeeded)
-                await runner.run(`prepare.${platformID}`, ctx)
-
-            // Begin building
             ctx.build = {}
             await runner.run('build.' + platformID, ctx)
 
             // Get output file/folder and copy to output directory in the project
-            let outputLocalPath = `output/${ctx.project.appInfo.name}-${platformID}${ctx.build.outputExt}`
+            let outputLocalPath = `output/${ctx.project.appInfo.name} for ${platform.name}${ctx.build.outputExt}`
             await fs.ensureDir(path.resolve(ctx.project.path, 'output'))
             await fs.copy(ctx.build.output, path.resolve(ctx.project.path, outputLocalPath))
             outputs.push(outputLocalPath)

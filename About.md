@@ -74,16 +74,18 @@ module.exports = runner => register().after('build').do(async ctx => {
 
 The built-in tasks add the following items to the context:
 
-Field                           | Type          | Description
---------------------------------|---------------|--------------------
-`ctx.run(cmd, opts)`            | `function`    | Executes a shell command in the project's root directory. `opts` is any custom params to pass to `child_process.spawn()`.
-`ctx.iosPermissions.add(key, text)` | `function` | Adds a text description for the specified permission key. See [here](https://www.iosdev.recipes/info-plist/permissions/) for a list of keys. If `text` is not specified, the build will fail until the project sets a text description, so this can be used by libraries to register that a permission usage description needs to be set without actually setting it.
-`ctx.project`                   | `object`      | Details about the project
-`ctx.project.appInfo`           | `object`      | Contents of the project's `app.json`
-`ctx.project.info`              | `object`      | Contents of the project's `package.json`
-`ctx.project.path`              | `string`      | Absolute path to the project root.
-`ctx.project.uses(module)`      | `function`    | Returns `true` if the project uses the specified module.
-`ctx.status(txt)`               | `function`    | Display current task to the user. Will display the task stack as well.
+Field                           | Description
+--------------------------------|--------------------
+`ctx.run(cmd, opts)`            | Executes a shell command in the project's root directory. `opts` is any custom params to pass to `child_process.spawn()`.
+`ctx.runWithOutput(cmd, opts)`  | Executes a shell command in the project's root directory. `opts` is any custom params to pass to `child_process.exec()`. Returns the output of the command.
+`ctx.iosPermissions.add(key, text)` | Adds a text description for the specified permission key. See [here](https://www.iosdev.recipes/info-plist/permissions/) for a list of keys. If `text` is not specified, the build will fail until the project sets a text description, so this can be used by libraries to register that a permission usage description needs to be set without actually setting it.
+`ctx.project`                   | Details about the project
+`ctx.project.appInfo`           | Contents of the project's `app.json`
+`ctx.project.info`              | Contents of the project's `package.json`
+`ctx.project.path`              | Absolute path to the project root.
+`ctx.project.uses(module)`      | Returns `true` if the project uses the specified module.
+`ctx.project.stateHash`         | A hash which changes whenever a new package is installed or the app information changes.
+`ctx.status(txt)`               | Display current task to the user. Will display the task stack as well.
 
 # About errors
 

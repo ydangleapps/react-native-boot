@@ -11,6 +11,9 @@ module.exports = runner => {
     // Build and run on the specified Android device
     runner.register('run.android').name('Android').do(async ctx => {
 
+        // Prepare Android projet folder
+        await runner.run('prepare.android', ctx)
+
         // The Android app project has already been prepared. Build for debug
         ctx.status('Building...')
         await ctx.android.gradle('app:assembleDebug')

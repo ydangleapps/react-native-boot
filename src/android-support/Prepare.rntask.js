@@ -1,26 +1,20 @@
 
 const path = require('path')
 const fs = require('fs-extra')
-const os = require('os')
 const rimraf = require('rimraf')
 const replace = require('replace-in-file')
-const which = require('which')
 
 module.exports = runner => {
 
     //
-    // Run checks to see if the project needs to be recreated
-    runner.register('prepare.android.check').do(async ctx => {
-
-        // Recreate if project folder no longer exists
-        if (!fs.existsSync(ctx.android.path))
-            ctx.prepareNeeded = true
-
-    })
-
-    //
     // The 'prepare' task is run when the native project needs to be recreated.
-    runner.register('prepare.android').name('Android').do(async ctx => {
+    runner.register('prepare.android').name('Prepare native project').do(async ctx => {
+
+        // Check if we can skip creating the native project and reuse the existing one
+        let sameHash = ctx.session.get('android.last-build-hash') === ctx.project.stateHash
+        let nativeProjectExists = await fs.exists(ctx.android.path)
+        if (sameHash && nativeProjectExists)
+            return
 
         // Delete temporary Android project directory if it exists
         ctx.status('Preparing native project...')
@@ -85,6 +79,9 @@ module.exports = runner => {
         // Make sure user has accepted all licenses
         ctx.status('Checking Android SDK licenses...')
         await ctx.run(`"${path.resolve(ctx.android.sdkRoot, 'tools/bin/sdkmanager')}" --licenses`)
+
+        // Store state hash
+        ctx.session.set('android.last-build-hash', ctx.project.stateHash)
 
     })
 

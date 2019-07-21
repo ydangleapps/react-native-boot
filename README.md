@@ -43,6 +43,7 @@ Command         | Description
 `run`           | Builds and runs your app. If no `<CMD>` is specified, this is the default task which is run.
 `devices`       | Lists available devices and allows you to to choose which one to run your app on.
 `build`         | Build an executable for each platform.
+`clean`         | Remove temporary build files.
 `info`          | Display information about your app.
 
 ## Contributing and extending

@@ -110,9 +110,9 @@ android {
         versionName "1.0"
         multiDexEnabled true
     }
-    // dexOptions {
-    //     jumboMode true
-    // }
+    dexOptions {
+        javaMaxHeapSize "2g"
+    }
     splits {
         abi {
             reset()
