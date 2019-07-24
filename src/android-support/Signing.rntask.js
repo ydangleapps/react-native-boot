@@ -173,7 +173,7 @@ module.exports = runner => {
 
     //
     // Add signing information to the native project when preparing the native project folder
-    runner.register('prepare.android.sign').after('prepare.android').name('Code signing').do(async ctx => {
+    runner.register('prepare.android.sign').name('Code signing').do(async ctx => {
 
         // Check session to find signing file
         let keystorePath = ctx.session.get('android.keystore.path')

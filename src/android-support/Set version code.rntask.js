@@ -4,7 +4,7 @@ const replace = require('replace-in-file')
 
 //
 // This task modifies the native project's version to match the package.json version
-module.exports = runner => runner.register('prepare.android.version').after('prepare.android').name('App version').do(async ctx => {
+module.exports = runner => runner.register('prepare.android.version').name('App version').do(async ctx => {
 
     // Update app version number to match package
     ctx.status(`Updating native app version to match package...`)

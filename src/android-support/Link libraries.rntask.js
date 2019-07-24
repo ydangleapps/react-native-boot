@@ -20,7 +20,7 @@ module.exports = runner => {
 
     //
     // Update android native project to reference the included libraries
-    runner.register('prepare.android.link').after('prepare.android').name('Link libraries').do(async ctx => {
+    runner.register('prepare.android.link').name('Link libraries').do(async ctx => {
 
         // Find all libraries to link
         ctx.status('Searching for native libraries...')

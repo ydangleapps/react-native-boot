@@ -18,7 +18,12 @@ module.exports = runner => {
 
         // Delete temporary Android project directory if it exists
         ctx.status('Preparing native project...')
-        rimraf.sync(ctx.android.path, { glob: false })
+        await fs.remove(ctx.android.path)
+        ctx.session.set('android.last-build-hash', null)
+
+        // Check if still exists
+        if (await fs.exists(ctx.android.path))
+            throw new Error('Unable to delete Android build folder. Maybbe you have a stuck instance of ' + chalk.yellow('adb') + ' still running?')
 
         // Copy Android template project
         await fs.copy(path.resolve(__dirname, 'native-template'), ctx.android.path)
@@ -75,6 +80,13 @@ module.exports = runner => {
             sdk.dir = ${ctx.android.sdkRoot.replace(/\\/g, '\\\\')}
         `
         await fs.writeFile(path.resolve(ctx.android.path, 'local.properties'), config)
+
+        // Do next prepare steps
+        await runner.run('prepare.android.icon', ctx)
+        await runner.run('prepare.android.link', ctx)
+        await runner.run('prepare.android.minsdk', ctx)
+        await runner.run('prepare.android.version', ctx)
+        await runner.run('prepare.android.sign', ctx)
 
         // Make sure user has accepted all licenses
         ctx.status('Checking Android SDK licenses...')

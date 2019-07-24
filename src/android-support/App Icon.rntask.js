@@ -7,7 +7,7 @@ const chalk = require('chalk')
 
 //
 // Setup app icon
-module.exports = runner => runner.register('prepare.android.icon').after('prepare.android').name('App icon').do(async ctx => {
+module.exports = runner => runner.register('prepare.android.icon').name('App icon').do(async ctx => {
 
     // Find path to app icon
     let name = ctx.property('icon.android') || 'icon-android.png'
