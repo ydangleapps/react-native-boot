@@ -20,26 +20,41 @@ module.exports = runner => {
 
         // Find all platforms
         let outputs = []
+        let errors = []
         for (let platformID in ctx.platforms) {
 
             // Get platform info
             let platform = ctx.platforms[platformID]
 
-            // Recreate native folders if necessary
-            ctx.status('Starting build for ' + chalk.cyan(platform.name))
-            ctx.build = {}
-            await runner.run('build.' + platformID, ctx)
+            try {
 
-            // Get output file/folder and copy to output directory in the project
-            let outputLocalPath = `output/${ctx.project.appInfo.name} for ${platform.name}${ctx.build.outputExt}`
-            await fs.ensureDir(path.resolve(ctx.project.path, 'output'))
-            await fs.copy(ctx.build.output, path.resolve(ctx.project.path, outputLocalPath))
-            outputs.push(outputLocalPath)
+                // Build for this platform
+                ctx.status('Starting build for ' + chalk.cyan(platform.name))
+                ctx.build = {}
+                await runner.run('build.' + platformID, ctx)
+
+                // Get output file/folder and copy to output directory in the project
+                let outputLocalPath = `output/${ctx.project.appInfo.name} for ${platform.name}${ctx.build.outputExt}`
+                await fs.ensureDir(path.resolve(ctx.project.path, 'output'))
+                await fs.copy(ctx.build.output, path.resolve(ctx.project.path, outputLocalPath))
+                outputs.push(outputLocalPath)
+
+            } catch (err) {
+                errors.push('Failed to build for ' + chalk.cyan(platform.name) + ': ' + err.message)
+            }
 
         }
 
-        // Done!
-        console.log('\nBuild complete! Generated apps:\n' + outputs.map(o => '- ' + chalk.cyan(o) + '\n') + '\n')
+        // Show output files
+        if (outputs.length)
+            console.log('\nBuild complete! Generated apps:\n' + outputs.map(o => '- ' + chalk.cyan(o) + '\n') + '\n')
+
+        // Show errors
+        if (errors.length)
+            console.log(chalk.red('\nErrors: \n') + errors.map(e => `- ${e}\n`))
+
+        // Done
+        console.log('')
 
     })
 

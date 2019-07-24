@@ -188,27 +188,6 @@ module.exports = runner => {
 
         }
 
-        // Get project app signing key name
-        let signingName = ctx.project.appInfo.name.toUpperCase().replace(/[^0-9a-zA-Z]/g, '_')
-
-        // Add password to ~/.gradle/gradle.properties
-        let systemGradlePropertiesPath = path.resolve(os.homedir(), '.gradle/gradle.properties')
-        await fs.ensureFile(systemGradlePropertiesPath)
-        let contents = await fs.readFile(systemGradlePropertiesPath, 'utf8')
-        if (contents.indexOf(signingName + '_RELEASE_STORE_PASSWORD') == -1) {
-
-            // Doesn't exist, append to file
-            await fs.appendFile(systemGradlePropertiesPath, `\n\n${signingName}_RELEASE_STORE_PASSWORD = "${keystorePass}"\n${signingName}_RELEASE_KEY_PASSWORD = "${keystoreAliasPassword}"\n`)
-
-        } else {
-
-            // Exists, replace existing definitions
-            contents = contents.replace(new RegExp(`${signingName}_RELEASE_STORE_PASSWORD = ".*?"`, 'g'), `${signingName}_RELEASE_STORE_PASSWORD = "${keystorePass}"`)
-            contents = contents.replace(new RegExp(`${signingName}_RELEASE_KEY_PASSWORD = ".*?"`, 'g'), `${signingName}_RELEASE_KEY_PASSWORD = "${keystoreAliasPassword}"`)
-            await fs.writeFile(systemGradlePropertiesPath, contents)
-
-        }
-
         // Add signing config
         replace.sync({
             files: path.resolve(ctx.android.path, 'app/build.gradle'),
@@ -216,9 +195,9 @@ module.exports = runner => {
             to: `signingConfigs {
                     release {
                         storeFile file("${keystorePath.replace(/\\/g, '\\\\')}")
-                        storePassword ${signingName}_RELEASE_STORE_PASSWORD
+                        storePassword "${keystorePass}"
                         keyAlias "${keystoreAlias}"
-                        keyPassword ${signingName}_RELEASE_KEY_PASSWORD
+                        keyPassword "${keystoreAliasPassword}"
                     }
                 }
             `
