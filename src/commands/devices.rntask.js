@@ -28,19 +28,20 @@ module.exports = runner => {
         if (ctx.devices.length == 0)
             throw new Error('No devices connected.')
 
-        // Check if there's only one device
-        if (ctx.devices.length) {
+        // Check if there's only one real device
+        let realDevices = ctx.devices.filter(d => !d.simulator)
+        if (realDevices.length == 1) {
 
             // Just select this one
-            ctx.status('Selected the only device: ' + chalk.cyan(ctx.devices[0].name))
-            ctx.device = ctx.devices[0]
+            ctx.status('Selected the only device: ' + chalk.cyan(realDevices[0].name) + chalk.gray(' (' + realDevices[0].id + ')'))
+            ctx.device = realDevices[0]
             ctx.session.set('selectedDevice', ctx.device)
             return
 
         }
 
         // Ask user to select the device
-        ctx.device = await ctx.console.select({ question: 'Which device do you want to use?', choices: ctx.devices.map(d => ({ name: d.name, value: d })) })
+        ctx.device = await ctx.console.select({ question: 'Which device do you want to use?', choices: ctx.devices.map(d => ({ name: d.name + (d.simulator ? chalk.gray(' (simulator)') : ''), value: d })) })
         ctx.session.set('selectedDevice', ctx.device)
 
     })

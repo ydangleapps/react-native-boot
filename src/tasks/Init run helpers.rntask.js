@@ -2,6 +2,7 @@
 const path = require('path')
 const ChildProcess = require('child_process')
 const fs = require('fs-extra')
+const which = require('which')
 
 //
 // Add helper methods to the task context
@@ -92,6 +93,19 @@ module.exports = runner => runner.register().name('Add run helpers').before('_in
                 if (code) reject(new Error('Process exited with error code ' + code))
                 else resolve()
             })
+        })
+
+    }
+
+    // Find the path to the specified executable, returns false if not found on the system $PATH.
+    ctx.pathTo = exeName => {
+
+        // Create promise
+        return new Promise((resolve, reject) => {
+
+            // Run it
+            which(exeName, (err, exePath) => resolve(exePath || false))
+
         })
 
     }

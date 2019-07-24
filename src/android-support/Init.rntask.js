@@ -43,10 +43,9 @@ module.exports = runner => {
         }
 
         // Make sure Java exists
-        // TODO: Better detection of Java
-        if (!ctx.env.JAVA_HOME) {
-            ctx.warning('Java is not installed, or JAVA_HOME has not been set.')
-            // return false
+        if (!await ctx.pathTo('java')) {
+            ctx.warning('Java is not installed.')
+            return false
         }
 
         // Success, Android is available

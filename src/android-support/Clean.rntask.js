@@ -10,6 +10,7 @@ module.exports = runner => {
         // Delete it
         ctx.status('Cleaning...')
         rimraf.sync(ctx.android.path, { glob: false })
+        ctx.session.set('android.last-build-hash', null)
 
     })
 

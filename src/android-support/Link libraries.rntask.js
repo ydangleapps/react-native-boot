@@ -23,6 +23,7 @@ module.exports = runner => {
     runner.register('prepare.android.link').after('prepare.android').name('Link libraries').do(async ctx => {
 
         // Find all libraries to link
+        ctx.status('Searching for native libraries...')
         let files = await new Promise((resolve, reject) => glob('**/android/build.gradle', {
             cwd: ctx.project.path,
             follow: true
