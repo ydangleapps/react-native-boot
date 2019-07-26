@@ -99,6 +99,8 @@ module.exports = runner => {
 
             // Get library name
             let libName = target.value.name.replace(/[^0-9A-Za-z]/g, '')
+            // if (libName == 'React')
+            //     libName = 'ReactTmp'
 
             // Create new temporary folder for this item
             let libBasePath = path.resolve(ctx.tempPath, 'ios-pods', libName)
@@ -113,7 +115,10 @@ module.exports = runner => {
                 for (let fileRef of frameworksPhase.value.files.map(f => pbx.object(f.value))) {
 
                     let file = pbx.object(fileRef.value.fileRef)
-                    // console.log(fileRef, file)
+                    if (!file) {
+                        ctx.warning("Unlinked framework file in " + path.basename(xcodeprojFile), fileRef)
+                        continue
+                    }// console.log(fileRef, file)
                     // process.exit(0)
 
                     // Add each file
@@ -138,8 +143,14 @@ module.exports = runner => {
             if (sourcePhase) {
                 for (let fileRef of sourcePhase.value.files.map(f => pbx.object(f.value))) {
 
-                    // Add each file
+                    // Find file reference
                     let file = pbx.object(fileRef.value.fileRef)
+                    if (!file) {
+                        ctx.warning("Unlinked source file in " + path.basename(xcodeprojFile), fileRef)
+                        continue
+                    }
+
+                    // Get relative path
                     let relativeFile = pbx.relativePath(file.id)
 
                     // Copy file to temporary folder
@@ -162,6 +173,12 @@ module.exports = runner => {
 
                     // Add each file
                     let file = pbx.object(fileRef.value.fileRef)
+                    if (!file) {
+                        ctx.warning("Unlinked header file in " + path.basename(xcodeprojFile), fileRef)
+                        continue
+                    }
+                    
+                    // Get relative path
                     let relativeFile = pbx.relativePath(file.id)
 
                     // Copy file to temporary folder
@@ -178,15 +195,7 @@ module.exports = runner => {
             }
 
             // Copy over all header files, since some libraries don't include all headers in their Headers or CopyFiles build phase
-            let headerFiles = await new Promise((resolve, reject) => glob('**/*.h', {
-                cwd: path.resolve(xcodeprojFile, '..'),
-                follow: true
-            }, (err, matches) => {
-                if (err) reject(err)
-                else resolve(matches)
-            }))
-
-            for (let relativeFile of headerFiles) {
+            for (let relativeFile of await ctx.files.glob('**/*.h', path.resolve(xcodeprojFile, '..'))) {
 
                 // Copy file to temporary folder
                 await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
@@ -194,6 +203,9 @@ module.exports = runner => {
                     path.resolve(xcodeprojFile, '..', relativeFile),
                     path.resolve(libBasePath, relativeFile)
                 )
+
+                // Add to source files
+                sources.push(relativeFile)
 
             }
 
@@ -204,6 +216,12 @@ module.exports = runner => {
 
                     // Add each file
                     let file = pbx.object(fileRef.value.fileRef)
+                    if (!file) {
+                        ctx.warning("Unlinked CopyFiles build phase file in " + path.basename(xcodeprojFile), fileRef)
+                        continue
+                    }
+                    
+                    // Get relative path
                     let relativeFile = pbx.relativePath(file.id)
 
                     // Copy file to temporary folder
@@ -219,6 +237,10 @@ module.exports = runner => {
                 }
             }
 
+            // if (libbName == 'ART') {
+
+            // }
+
             // Create podspec
             let txt = `
             
@@ -232,10 +254,12 @@ module.exports = runner => {
                     spec.homepage       = 'https://facebook.github.io/react-native/'
                     spec.summary        = 'None'
                     spec.frameworks     = ${frameworks.map(f => `'${f}'`).join(', ') || 'nil'}
-                    spec.source_files   = ${sources.map(f => `'${f}'`).join(', ') || 'nil'}
-                    spec.pod_target_xcconfig = { 
-                        'USER_HEADER_SEARCH_PATHS' => '${ctx.ios.path}/.."/** "${path.resolve(ctx.project.path, 'node_modules/react-native')}"/**'
-                    }
+                    spec.source_files   = '**/*.{h,m,mm}'${''/*sources.map(f => `'${f}'`).join(', ') || 'nil'*/}
+                    ${libName == 'React' ? '#' : ''} spec.dependency 'React'
+                    #spec.pod_target_xcconfig = {
+                    #    'USER_HEADER_SEARCH_PATHS' => '$(SRCROOT)/**',
+                    #    'ALWAYS_SEARCH_USER_PATHS' => 'YES'
+                    #}
                 end
 
             `

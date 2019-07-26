@@ -35,4 +35,18 @@ module.exports = runner => runner.register().name('Add file helpers').before('_i
 
     }
 
+    /** Returns a list of files. Default root directory is the project directory. */
+    ctx.files.glob = function(globPath, rootDirectory) {
+
+        // Do it
+        return new Promise((resolve, reject) => glob(globPath, {
+            cwd: rootDirectory || ctx.project.path,
+            follow: true
+        }, (err, matches) => {
+            if (err) reject(err)
+            else resolve(matches)
+        }))
+
+    }
+
 })

@@ -80,7 +80,7 @@ module.exports = runner => {
         ctx.run(`node ./node_modules/react-native/cli.js start`)
 
         // Forward TCP port to the device
-        await ctx.android.adb(`-s ${ctx.device.serial} reverse tcp:8081 tcp:8081`)
+        ctx.android.adb(`-s ${ctx.device.serial} reverse tcp:8081 tcp:8081`)
 
         // Clear old logs
         await ctx.android.adb(`-s ${ctx.device.serial} logcat --clear`)
