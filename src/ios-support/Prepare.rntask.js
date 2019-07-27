@@ -32,17 +32,30 @@ module.exports = runner => {
         
         // Update project references
         replace.sync({ 
-            files: path.resolve(ctx.ios.path, 'HelloWorld.xcodeproj/project.pbxproj'), 
-            from: /INJECT_PROJECT_PATH/g,
-            to: ctx.project.path
+            files: path.resolve(ctx.ios.path, '**/*'), 
+            from: /\.\.\/node_modules\/react-native/g,
+            to: path.resolve(ctx.project.path, 'node_modules/react-native')
         })
 
-        // Copy React headers into project directory
-        // Someone please tell me why this is necessary...
+        // Update shell script which compiles the JS portion of the app
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld.xcodeproj/project.pbxproj'),
+            from: /shellScript = ".*?"/g,
+            to: `shellScript = "export NODE_BINARY=node\\n\\"${path.resolve(ctx.project.path, 'node_modules/react-native/scripts/react-native-xcode.sh')}\\""`
+        })
+
+        // Update Podfile react-native path
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'Podfile'),
+            from: /rn_path = '.*?'/g,
+            to: `rn_path = '${path.resolve(ctx.project.path, 'node_modules/react-native')}'`
+        })
+
+        // Copy React headers to temporary folder
+        // TODO: Someone please tell me why this is necessary...
         // await copyReactHeaders(ctx, 'React/Base')
         // await copyReactHeaders(ctx, 'React/CxxBridge')
-        // await copyReactHeaders(ctx, 'React/CxxModule')
-        // await copyReactHeaders(ctx, 'React/CxxUtils')
+        // await copyReactHeaders(ctx, 'React/CxxModules')
         // await copyReactHeaders(ctx, 'React/DevSupport')
         // await copyReactHeaders(ctx, 'React/Fabric')
         // await copyReactHeaders(ctx, 'React/Inspector')
@@ -50,37 +63,68 @@ module.exports = runner => {
         // await copyReactHeaders(ctx, 'React/Profiler')
         // await copyReactHeaders(ctx, 'React/UIUtils')
         // await copyReactHeaders(ctx, 'React/Views')
-        // await copyReactHeaders(ctx, 'ReactCommon/better')
-        // await copyReactHeaders(ctx, 'ReactCommon/config')
-        // await copyReactHeaders(ctx, 'ReactCommon/cxxreact')
-        // await copyReactHeaders(ctx, 'ReactCommon/fabric')
-        // await copyReactHeaders(ctx, 'ReactCommon/jsi')
-        // await copyReactHeaders(ctx, 'ReactCommon/jsiexecutor')
-        // await copyReactHeaders(ctx, 'ReactCommon/jsinspector')
-        // await copyReactHeaders(ctx, 'ReactCommon/microprofiler')
-        // await copyReactHeaders(ctx, 'ReactCommon/turbomodule')
-        // await copyReactHeaders(ctx, 'ReactCommon/utils')
-        // await copyReactHeaders(ctx, 'ReactCommon/yoga')
+        // await copyReactHeaders(ctx, 'ReactCommon')
+        // // await copyReactHeaders(ctx, 'ReactCommon/better')
+        // // await copyReactHeaders(ctx, 'ReactCommon/config')
+        // // await copyReactHeaders(ctx, 'ReactCommon/cxxreact')
+        // // await copyReactHeaders(ctx, 'ReactCommon/fabric')
+        // // await copyReactHeaders(ctx, 'ReactCommon/jsi')
+        // // await copyReactHeaders(ctx, 'ReactCommon/jsiexecutor')
+        // // await copyReactHeaders(ctx, 'ReactCommon/jsinspector')
+        // // await copyReactHeaders(ctx, 'ReactCommon/microprofiler')
+        // // await copyReactHeaders(ctx, 'ReactCommon/turbomodule')
+        // // await copyReactHeaders(ctx, 'ReactCommon/utils')
+        // // await copyReactHeaders(ctx, 'ReactCommon/yoga')
+        // await copyReactHeaders(ctx, 'Libraries/ActionSheetIOS')
+        // await copyReactHeaders(ctx, 'Libraries/ART')
+        // await copyReactHeaders(ctx, 'Libraries/Blob')
+        // await copyReactHeaders(ctx, 'Libraries/CameraRoll')
+        // await copyReactHeaders(ctx, 'Libraries/fishhook')
+        // await copyReactHeaders(ctx, 'Libraries/Geolocation')
+        // await copyReactHeaders(ctx, 'Libraries/Image')
+        // await copyReactHeaders(ctx, 'Libraries/LinkingIOS')
+        // await copyReactHeaders(ctx, 'Libraries/NativeAnimation')
+        // await copyReactHeaders(ctx, 'Libraries/Network')
+        // await copyReactHeaders(ctx, 'Libraries/PushNotificationIOS')
+        // await copyReactHeaders(ctx, 'Libraries/RCTTest')
+        // await copyReactHeaders(ctx, 'Libraries/Sample')
+        // await copyReactHeaders(ctx, 'Libraries/Settings')
+        // await copyReactHeaders(ctx, 'Libraries/SurfaceBackedComponent')
+        // await copyReactHeaders(ctx, 'Libraries/SurfaceHostingComponent')
+        // await copyReactHeaders(ctx, 'Libraries/Text')
+        // await copyReactHeaders(ctx, 'Libraries/Vibration')
+        // await copyReactHeaders(ctx, 'Libraries/WebSocket')
+        // await copyReactHeaders(ctx, 'Libraries/Wrapper')
+
+        // Add third party dependencies
+
 
         // Inject React dependencies
-        ctx.status('Adding support libraries...')
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/React/React.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/ActionSheetIOS/RCTActionSheet.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/ART/ART.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Geolocation/RCTGeolocation.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Image/RCTImage.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Network/RCTNetwork.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/PushNotificationIOS/RCTPushNotification.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/RCTTest/RCTTest.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Sample/Sample.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Settings/RCTSettings.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Text/RCTText.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Vibration/RCTVibration.xcodeproj'))
-        await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj'))
+        // ctx.status('Adding support libraries...')
+        // await ctx.ios.addLocalPodspecDependency(path.resolve(ctx.project.path, 'node_modules/react-native/React.podspec'))
+        // await ctx.ios.addLocalPodspecDependency(path.resolve(ctx.project.path, 'node_modules/react-native/ReactCommon/yoga/yoga.podspec'))
+        // await ctx.ios.addLocalPodspecDependency(path.resolve(ctx.project.path, 'node_modules/react-native/third-party-podspecs/Folly.podspec'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/React/React.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/ActionSheetIOS/RCTActionSheet.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/ART/ART.xcodeproj'), {
+        //     inject: `
+        //         spec.dependency 'React'
+        //     `
+        // })
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Geolocation/RCTGeolocation.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Image/RCTImage.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Network/RCTNetwork.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/PushNotificationIOS/RCTPushNotification.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/RCTTest/RCTTest.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Sample/Sample.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Settings/RCTSettings.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Text/RCTText.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/Vibration/RCTVibration.xcodeproj'))
+        // await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, 'node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj'))
 
         // Link other libraries
         await runner.run('prepare.ios.link', ctx)

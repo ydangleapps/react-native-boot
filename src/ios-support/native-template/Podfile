@@ -1,8 +1,40 @@
-# platform :ios, '8.0'
-use_frameworks!
+platform :ios, '9.0'
+
+install! 'cocoapods', :deterministic_uuids => false
 
 target 'HelloWorld' do
-  
-    #INJECT_PODS
+ rn_path = '../node_modules/react-native'
+ pod 'yoga', path: "#{rn_path}/ReactCommon/yoga/yoga.podspec"
+ pod 'React', path: rn_path, subspecs: [
+   'Core',
+   'RCTActionSheet',
+   'RCTAnimation',
+   'RCTGeolocation',
+   'RCTImage',
+   'RCTLinkingIOS',
+   'RCTNetwork',
+   'RCTSettings',
+   'RCTText',
+   'RCTVibration',
+   'RCTWebSocket'
+ ]
 
+  #INJECT_PODS
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    # The following is needed to ensure the "archive" step works in XCode.
+    # It removes React & Yoga from the Pods project, as it is already included in the main project.
+    # Without this, you'd see errors when you archive like:
+    # "Multiple commands produce ... libReact.a"
+    # "Multiple commands produce ... libyoga.a"
+
+    targets_to_ignore = %w(React yoga)
+
+    if targets_to_ignore.include? target.name
+      target.remove_from_project
+    end
+  end
 end

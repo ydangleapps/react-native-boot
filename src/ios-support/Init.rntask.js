@@ -22,6 +22,18 @@ module.exports = runner => {
             return false
         }
 
+        // Make sure ios-deploy is installed
+        if (!await ctx.pathTo('ios-deploy')) {
+            ctx.warning('To build for iOS, please install ios-deploy by running ' + chalk.cyan('npm install -g ios-deploy'))
+            return false
+        }
+
+        // Make sure xcpretty is installed
+        if (!await ctx.pathTo('xcpretty')) {
+            ctx.warning('To build for iOS, please install xcpretty by running ' + chalk.cyan('sudo gem install xcpretty'))
+            return false
+        }
+
         // Success, iOS is available
         return true
 

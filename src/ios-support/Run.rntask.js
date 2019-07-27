@@ -22,25 +22,21 @@ module.exports = runner => {
 
         }
 
+        // Start Metro bundler through CLI
+        ctx.run(`node ./node_modules/react-native/cli.js start`)
+
         // Create xcodeubild command
         ctx.status('Building...')
-        let cmd = `xcodebuild build`
+        let cmd = `xcodebuild`
             + ` -workspace HelloWorld.xcworkspace -scheme HelloWorld -destination "id=${ctx.device.serial}"`
             + ` -allowProvisioningUpdates -allowProvisioningDeviceRegistration`
+            + ` -derivedDataPath "${path.resolve(ctx.tempPath, 'ios-build')}"`
             + ` DEVELOPMENT_TEAM="${ctx.project.appInfo.iosTeamID}"`
+            // + ` USER_HEADER_SEARCH_PATHS="\\$(inherited) '${ctx.ios.path}'/**"`
+            // + ` ALWAYS_SEARCH_USER_PATHS=YES`
 
-        // If xcpretty is installed, use that
-        if (await ctx.pathTo('xcpretty')) {
-
-            // Add xcpretty to the command
-            cmd = `set -o pipefail && ${cmd}  | xcpretty`
-
-        } else {
-
-            // Fail
-            throw new Error('xcpretty not found, please run ' + chalk.cyan('sudo gem install xcpretty') + '.')
-
-        }
+        // Add xcpretty to the command
+        cmd = `set -o pipefail && ${cmd} | xcpretty`
 
         try {
 
@@ -63,6 +59,11 @@ module.exports = runner => {
 
         }
         
+        // File has been built! Get path to output .app
+        let bundlePath = path.resolve(ctx.tempPath, 'ios-build/Build/Products/Debug-iphoneos/HelloWorld.app')
+        
+        // Deploy and run on device
+        await ctx.run(`ios-deploy --id "${ctx.device.serial}" --bundle "${bundlePath}" --debug`)
 
     })
 

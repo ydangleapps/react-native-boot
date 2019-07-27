@@ -68,39 +68,67 @@ module.exports = runner => {
         }
 
         // Add a .xcodeproj/project.pbxproj library as a dependency, creating a podspec for it as needed
-        ctx.ios.addLocalProjectDependency = async xcodeprojFile => {
+        ctx.ios.addLocalProjectDependency = async (xcodeprojFile, opts = {}) => {
 
             // Read project data
             let pbx = new PBX(path.resolve(xcodeprojFile, 'project.pbxproj'))
             
             // Find the correct target
             // TODO: Determine if project
-            let project = null
-            let target = null
-            for (let nProject of pbx.projects()) {
+            for (let project of pbx.projects()) {
 
                 // Go through targets
-                for (let nTarget of pbx.projectTargets(nProject.id)) {
+                for (let target of pbx.projectTargets(project.id)) {
 
-                    // TODO: Determine if target is not compatible
+                    // Only continue for library projects
+                    if (!target.value.productType.includes('com.apple.product-type.library.static')) {
+                        console.log(chalk.gray('Skipping target ' + target.value.name + ' ' + target.value.productType))
+                        continue
+                    }
 
-                    // Get target
-                    target = nTarget
-                    project = nProject
-                    break
+                    // Create pod for this target
+                    await ctx.ios.addLocalProjectTargetDependency(xcodeprojFile, pbx, project, target, opts)
 
                 }
 
             }
 
-            // Stop if no target
-            if (!target)
-                throw new Error('Unable to find build target in ' + chalk.cyan(xcodeprojFile))
+        }
+
+        // @private Add a single target from an .xcodeproj as a cocoapod module
+        ctx.ios.addLocalProjectTargetDependency = async (xcodeprojFile, pbx, project, target, opts) => {
+
+            // Stop if not an iOS target
+            let buildConfig = pbx.defaultBuildConfig(target.id)
+            if (buildConfig.value.buildSettings.SDKROOT && buildConfig.value.buildSettings.SDKROOT != 'iphoneos')
+                return console.log(chalk.gray('Skipping ' + target.value.name + ' since it is not for iOS. (sdk = ' + buildConfig.value.buildSettings.SDKROOT + ')'))
 
             // Get library name
             let libName = target.value.name.replace(/[^0-9A-Za-z]/g, '')
-            // if (libName == 'React')
-            //     libName = 'ReactTmp'
+            ctx.status('Creating temporary Pod for target ' + chalk.cyan(libName))
+
+            // Fetch xcconfig flags
+            let xcconfigFlags = []
+            // xcconfigFlags.push({ key: 'USER_HEADER_SEARCH_PATHS', value: `"${path.resolve(ctx.project.path, 'node_modules/react-native')}"/**` })
+            // xcconfigFlags.push({ key: 'ALWAYS_SEARCH_USER_PATHS', value: 'YES' })
+            for (let key of Object.keys(buildConfig.allBuildSettings)) {
+
+                // Skip flags already set
+                if (xcconfigFlags.find(c => c.key == key))
+                    continue
+
+                // Strip quotes from string
+                let value = buildConfig.allBuildSettings[key]
+                if (!value) continue
+                if (Array.isArray(value)) value = value.join(' ')
+                if (value.startsWith('"') && value.endsWith('"')) 
+                    value = value.substring(1, value.length - 1)
+
+                // Store others
+                xcconfigFlags.push({ key, value })
+
+            }
+
 
             // Create new temporary folder for this item
             let libBasePath = path.resolve(ctx.tempPath, 'ios-pods', libName)
@@ -109,93 +137,50 @@ module.exports = runner => {
 
             // Find frameworks to link to
             let frameworks = []
-            let buildPhases = target.value.buildPhases.map(ph => pbx.object(ph.value))
-            let frameworksPhase = buildPhases.find(ph => ph.value.isa == 'PBXFrameworksBuildPhase')
-            if (frameworksPhase) {
-                for (let fileRef of frameworksPhase.value.files.map(f => pbx.object(f.value))) {
+            for (let file of pbx.iterateFilesInBuildSection(target.id, 'PBXFrameworksBuildPhase')) {
 
-                    let file = pbx.object(fileRef.value.fileRef)
-                    if (!file) {
-                        ctx.warning("Unlinked framework file in " + path.basename(xcodeprojFile), fileRef)
-                        continue
-                    }// console.log(fileRef, file)
-                    // process.exit(0)
+                // Do something
+                console.log('FRAMEWORK ' + file.relativePath)
 
-                    // Add each file
-                    // let relativeFile = pbx.relativePath(file.id)
-
-                    // // Copy file to temporary folder
-                    // await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
-                    // await fs.copyFile(
-                    //     path.resolve(xcodeprojFile, '..', relativeFile),
-                    //     path.resolve(libBasePath, relativeFile)
-                    // )
-
-                    // // Resolve path to file
-                    // sources.push(relativeFile)
-
-                }
             }
 
             // Find source files to compile
             let sources = []
-            let sourcePhase = buildPhases.find(ph => ph.value.isa == 'PBXSourcesBuildPhase')
-            if (sourcePhase) {
-                for (let fileRef of sourcePhase.value.files.map(f => pbx.object(f.value))) {
+            for (let file of pbx.iterateFilesInBuildSection(target.id, 'PBXSourcesBuildPhase')) {
 
-                    // Find file reference
-                    let file = pbx.object(fileRef.value.fileRef)
-                    if (!file) {
-                        ctx.warning("Unlinked source file in " + path.basename(xcodeprojFile), fileRef)
-                        continue
-                    }
+                // Copy file to temporary folder
+                await fs.ensureDir(path.resolve(libBasePath, file.relativePath, '..'))
+                await fs.copyFile(
+                    path.resolve(xcodeprojFile, '..', file.relativePath),
+                    path.resolve(libBasePath, file.relativePath)
+                )
 
-                    // Get relative path
-                    let relativeFile = pbx.relativePath(file.id)
+                // Resolve path to file
+                sources.push(file.relativePath)
 
-                    // Copy file to temporary folder
-                    await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
-                    await fs.copyFile(
-                        path.resolve(xcodeprojFile, '..', relativeFile),
-                        path.resolve(libBasePath, relativeFile)
-                    )
-
-                    // Resolve path to file
-                    sources.push(relativeFile)
-
-                }
             }
 
             // Add header files to the sources
-            let headerPhase = buildPhases.find(ph => ph.value.isa == 'PBXHeadersBuildPhase')
-            if (headerPhase) {
-                for (let fileRef of headerPhase.value.files.map(f => pbx.object(f.value))) {
+            for (let file of pbx.iterateFilesInBuildSection(target.id, 'PBXHeadersBuildPhase')) {
 
-                    // Add each file
-                    let file = pbx.object(fileRef.value.fileRef)
-                    if (!file) {
-                        ctx.warning("Unlinked header file in " + path.basename(xcodeprojFile), fileRef)
-                        continue
-                    }
-                    
-                    // Get relative path
-                    let relativeFile = pbx.relativePath(file.id)
+                // Copy file to temporary folder
+                await fs.ensureDir(path.resolve(libBasePath, file.relativePath, '..'))
+                await fs.copyFile(
+                    path.resolve(xcodeprojFile, '..', file.relativePath),
+                    path.resolve(libBasePath, file.relativePath)
+                )
 
-                    // Copy file to temporary folder
-                    await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
-                    await fs.copyFile(
-                        path.resolve(xcodeprojFile, '..', relativeFile),
-                        path.resolve(libBasePath, relativeFile)
-                    )
+                // Resolve path to file
+                sources.push(file.relativePath)
 
-                    // Resolve path to file
-                    sources.push(relativeFile)
-
-                }
             }
 
             // Copy over all header files, since some libraries don't include all headers in their Headers or CopyFiles build phase
             for (let relativeFile of await ctx.files.glob('**/*.h', path.resolve(xcodeprojFile, '..'))) {
+
+                // Stop if already copied
+                if (sources.includes(relativeFile))
+                    continue
 
                 // Copy file to temporary folder
                 await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
@@ -206,40 +191,24 @@ module.exports = runner => {
 
                 // Add to source files
                 sources.push(relativeFile)
+                ctx.warning('Copied unreferenced header: ' + chalk.cyan(relativeFile))
 
             }
 
             // Add CopyFiles build phase files to the sources
-            let copyPhase = buildPhases.find(ph => ph.value.isa == 'PBXCopyFilesBuildPhase')
-            if (copyPhase) {
-                for (let fileRef of copyPhase.value.files.map(f => pbx.object(f.value))) {
+            for (let file of pbx.iterateFilesInBuildSection(target.id, 'PBXCopyFilesBuildPhase')) {
 
-                    // Add each file
-                    let file = pbx.object(fileRef.value.fileRef)
-                    if (!file) {
-                        ctx.warning("Unlinked CopyFiles build phase file in " + path.basename(xcodeprojFile), fileRef)
-                        continue
-                    }
-                    
-                    // Get relative path
-                    let relativeFile = pbx.relativePath(file.id)
+                // Copy file to temporary folder
+                await fs.ensureDir(path.resolve(libBasePath, file.relativePath, '..'))
+                await fs.copyFile(
+                    path.resolve(xcodeprojFile, '..', file.relativePath),
+                    path.resolve(libBasePath, file.relativePath)
+                )
 
-                    // Copy file to temporary folder
-                    await fs.ensureDir(path.resolve(libBasePath, relativeFile, '..'))
-                    await fs.copyFile(
-                        path.resolve(xcodeprojFile, '..', relativeFile),
-                        path.resolve(libBasePath, relativeFile)
-                    )
+                // Resolve path to file
+                sources.push(file.relativePath)
 
-                    // Resolve path to file
-                    sources.push(relativeFile)
-
-                }
             }
-
-            // if (libbName == 'ART') {
-
-            // }
 
             // Create podspec
             let txt = `
@@ -254,12 +223,15 @@ module.exports = runner => {
                     spec.homepage       = 'https://facebook.github.io/react-native/'
                     spec.summary        = 'None'
                     spec.frameworks     = ${frameworks.map(f => `'${f}'`).join(', ') || 'nil'}
-                    spec.source_files   = '**/*.{h,m,mm}'${''/*sources.map(f => `'${f}'`).join(', ') || 'nil'*/}
-                    ${libName == 'React' ? '#' : ''} spec.dependency 'React'
-                    #spec.pod_target_xcconfig = {
-                    #    'USER_HEADER_SEARCH_PATHS' => '$(SRCROOT)/**',
-                    #    'ALWAYS_SEARCH_USER_PATHS' => 'YES'
-                    #}
+                    spec.source_files   = ${sources.map(f => `'${f}'`).join(', ') || 'nil'}
+                    spec.ios.deployment_target  = '9.0'
+                    spec.dependency 'React'
+                    spec.pod_target_xcconfig = {
+                        ${xcconfigFlags.map(xc => `'${xc.key}' => '${xc.value}'`).join(',\n')}
+                    }
+
+                    ${opts.inject || ''}
+
                 end
 
             `
@@ -285,73 +257,48 @@ module.exports = runner => {
     // @caller preapre.ios
     runner.register('prepare.ios.link').name('Link dependencies').do(async ctx => {
 
-        // Open main project
-        let mainProj = xcode.project(path.resolve(ctx.ios.path, 'HelloWorld.xcodeproj/project.pbxproj'))
-        mainProj.parseSync()
+        // Read all installed packages for this project
+        for (let filename of await ctx.files.glob('**/package.json', path.resolve(ctx.project.path, 'node_modules'))) {
 
-        // Find all cocoapod based libraries to link
-        ctx.status('Searching for native libraries...')
-        let files = await new Promise((resolve, reject) => glob('**/ios/*.podspec', {
-            cwd: ctx.project.path,
-            follow: true
-        }, (err, matches) => {
-            if (err) reject(err)
-            else resolve(matches)
-        }))
-        
-        // Link each library
-        let linkedPackages = []
-        for (let file of files) {
+            // Get package.json
+            let packagePath = path.resolve(ctx.project.path, 'node_modules', filename, '..')
+            let packageInfo = require(path.resolve(packagePath, 'package.json'))
 
-            // Skip projects where the native directory is not in the root of the project
-            let podspec = path.resolve(ctx.project.path, file)
-            if (!await fs.exists(path.resolve(podspec, '../../package.json')))
+            // Skip non dependencies
+            if (packageInfo.name == 'react-native') continue
+            if (packageInfo.name == 'react-native-boot') continue
+
+            // Find podspec for this package, skip submodules
+            let podspecs = await ctx.files.glob('**/*.podspec', packagePath)
+            podspecs = podspecs.filter(p => !p.includes('node_modules'))
+            for (let podspec of podspecs) {
+
+                // Get absolute path
+                podspec = path.resolve(packagePath, podspec)
+
+                // Install it as a dependency
+                ctx.status('Adding ' + chalk.cyan(packageInfo.name) + chalk.gray(' (' + path.basename(podspec) + ')'))
+                await ctx.ios.addLocalPodspecDependency(podspec)
+
+            }
+
+            // If we added a podspec, stop here
+            if (podspecs.length > 0)
                 continue
 
-            // Skip projects with an app.json, since those are most likely template full apps and not a library
-            if (await fs.exists(path.resolve(podspec, '../../app.json')))
-                continue
+            // No podspecs found, check if an .xcodeproj exists
+            let xcodeprojs = await ctx.files.glob('**/*.xcodeproj', packagePath)
+            xcodeprojs = xcodeprojs.filter(p => !p.includes('node_modules'))
+            for (let xcodeproj of xcodeprojs) {
 
-            // Link it
-            let libPackage = require(path.resolve(ctx.project.path, file, '../../package.json'))
-            if (ctx.ios.linking.skip[libPackage.name]) continue
-            ctx.status('Linking ' + chalk.cyan(libPackage.name))
-            await ctx.ios.addLocalPodspecDependency(path.resolve(ctx.project.path, file))
-            linkedPackages.push(libPackage.name)
+                // Get absolute path
+                xcodeproj = path.resolve(packagePath, xcodeproj)
 
-        }
+                // Install it as a dependency, creating a virtual Podspec for it
+                ctx.status('Adding ' + chalk.cyan(packageInfo.name) + chalk.gray(' (' + path.basename(xcodeproj) + ')'))
+                await ctx.ios.addLocalProjectDependency(xcodeproj)
 
-        // Find all xcodeproj based libraries to link
-        files = await new Promise((resolve, reject) => glob('**/ios/*.xcodeproj', {
-            cwd: ctx.project.path,
-            follow: true
-        }, (err, matches) => {
-            if (err) reject(err)
-            else resolve(matches)
-        }))
-        
-        // Link each library
-        for (let file of files) {
-
-            // Skip projects where the native directory is not in the root of the project
-            let podspec = path.resolve(ctx.project.path, file)
-            if (!await fs.exists(path.resolve(podspec, '../../package.json')))
-                continue
-
-            // Skip projects with an app.json, since those are most likely template full apps and not a library
-            if (await fs.exists(path.resolve(podspec, '../../app.json')))
-                continue
-
-            // Skip if this library had a podspec which has been linked
-            let libPackage = require(path.resolve(ctx.project.path, file, '../../package.json'))
-            if (linkedPackages.includes(libPackage.name))
-                continue
-
-            // Link it
-            if (ctx.ios.linking.skip[libPackage.name]) continue
-            ctx.status('Linking ' + chalk.cyan(libPackage.name) + chalk.gray(' (creating temporary podspec)'))
-            await ctx.ios.addLocalProjectDependency(path.resolve(ctx.project.path, file))
-            linkedPackages.push(libPackage.name)
+            }
 
         }
 

@@ -16,10 +16,11 @@ module.exports = runner => {
         // Delete temporary local pods
         await fs.remove(path.resolve(ctx.tempPath, 'ios-pods'))
 
-        // Delete Xcode's DerivedData
-        let derivedData = path.resolve(os.homedir(), 'Library/Developer/Xcode/DerivedData')
-        for (let file of await ctx.files.glob('HelloWorld-*', derivedData))
-            await fs.remove(path.resolve(derivedData, file))
+        // Delete DerivedData
+        await fs.remove(path.resolve(ctx.tempPath, 'ios-build'))
+        // let derivedData = path.resolve(os.homedir(), 'Library/Developer/Xcode/DerivedData')
+        // for (let file of await ctx.files.glob('HelloWorld-*', derivedData))
+        //     await fs.remove(path.resolve(derivedData, file))
 
         // Make sure we re-prepare the project on next run
         ctx.session.set('ios.last-build-hash', null)
