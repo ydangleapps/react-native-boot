@@ -993,6 +993,12 @@ which@^1.3.1:
   dependencies:
     isexe "^2.0.0"
 
+"which@github:jjv360/node-which":
+  version "1.3.1"
+  resolved "https://codeload.github.com/jjv360/node-which/tar.gz/563406d75b97f97a33e506b9cc7a82b268332b6f"
+  dependencies:
+    isexe "^2.0.0"
+
 wide-align@^1.1.0:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.3.tgz#ae074e6bdc0c14a431e804e624549c633b000457"
