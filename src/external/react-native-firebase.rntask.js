@@ -3,6 +3,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const chalk = require('chalk')
 const replace = require('replace-in-file')
+const PBX = require('../ios-support/PBX')
 
 //
 // To reconfigure installed modules, run `npm start firebase.setup`
@@ -10,8 +11,8 @@ const replace = require('replace-in-file')
 module.exports = runner => {
 
     //
-    // Skip autolinking of this library
-    runner.register().requires(c => c.project.uses('react-native-firebase')).before('prepare.android.link').do(ctx => {
+    // Skip autolinking of this library on Android
+    runner.register().requires(c => c.project.uses('react-native-firebase:android.link')).before('prepare.android.link').do(ctx => {
         ctx.android.linking.skip['react-native-firebase'] = true
     })
 
@@ -226,6 +227,95 @@ module.exports = runner => {
         await ctx.android.injectClasspathDependency("classpath 'com.google.firebase:perf-plugin:1.2.1'")
         await ctx.android.injectGradlePlugin(`apply plugin: "com.google.firebase.firebase-perf"`)
         await ctx.android.injectRNPackage('io.invertase.firebase.perf', 'RNFirebasePerformancePackage')
+    })
+
+    
+
+    //
+    // Prepare iOS code
+    runner.register('react-native-firebase:ios').name('react-native-firebase').requires(c => c.project.uses('react-native-firebase')).before('prepare.ios.podinstall').do(async ctx => {
+
+        // Check if user has not set up firebase yet
+        if (!ctx.project.appInfo.firebase)
+            await runner.run('firebase.setup', ctx)
+
+        // Find path to iOS JSON
+        let plistPath = path.resolve(ctx.project.path, 'metadata/google-services-ios.plist')
+        if (!await fs.exists(plistPath))
+            throw new Error(`The file ${chalk.cyan('metadata/google-services-ios.plist')} was not found. Please go to the Firebase console > Project Settings > Add iOS and download the plist file. Then, copy it to this path in your project.`)
+
+        // Copy iOS config
+        ctx.status('Modifying native code...')
+        await fs.copyFile(
+            plistPath,
+            path.resolve(ctx.ios.path, 'GoogleService-Info.plist')
+        )
+
+        // Add reference to project
+        let proj = new PBX(path.resolve(ctx.ios.path, 'HelloWorld.xcodeproj/project.pbxproj'))
+        proj.addResource('GoogleService-Info.plist')
+        await proj.save()
+
+        // Modify source code
+        await ctx.ios.injectDependency("pod 'Firebase/Core', '~> 6.3.0'")
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '#import',
+            to: `#import <Firebase.h>\n#import`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '{',
+            to: `{\n[FIRApp configure];\n`
+        })
+
+        // Run setup tasks
+        for (let key in ctx.project.appInfo.firebase)
+            if (runner.tasks['firebase.ios.' + key])
+                await runner.run('firebase.ios.' + key, ctx)
+
+    })
+
+    //
+    // Add module support for iOS
+    runner.register('firebase.ios.admob').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/AdMob', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.analytics').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'GoogleIDFASupport', '~> 3.14.0'")
+    })
+    runner.register('firebase.ios.auth').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Auth', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.messaging').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Messaging', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.functions').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Functions', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.crashlytics').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Fabric', '~> 1.10.2'")
+        await ctx.ios.injectDependency("pod 'Crashlytics', '~> 3.13.2'")
+        // TODO: Add build script
+    })
+    runner.register('firebase.ios.database').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Database', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.links').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/DynamicLinks', '~> 6.3.0'")
+        // TODO: Setup
+    })
+    runner.register('firebase.ios.notifications').do(async ctx => {
+        // TODO: Setup
+    })
+    runner.register('firebase.ios.remoteconfig').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/RemoteConfig', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.storage').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Storage', '~> 6.3.0'")
+    })
+    runner.register('firebase.ios.performance').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Performance', '~> 6.3.0'")
     })
 
 }

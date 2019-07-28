@@ -1,7 +1,7 @@
 const xcode = require('xcode')
 const path = require('path')
 const chalk = require('chalk')
-const fs = require('fs')
+const fs = require('fs-extra')
 
 //
 // Handles reading contents from an Xcode .pbxproj file
@@ -21,6 +21,11 @@ module.exports = class PBX {
             SRCROOT: path.resolve(file)
         }
 
+    }
+
+    /** Save changes back to the project file */
+    async save() {
+        return fs.writeFile(this.file, this.pbx.writeSync())
     }
 
     /** Get object with specified ID */
@@ -281,6 +286,81 @@ module.exports = class PBX {
     defaultBuildConfig(targetID) {
         let all = this.buildConfigs(targetID)
         return all.find(c => c.isDefault) || all[0]
+    }
+
+    /** Adds a file to the project's resources. Path must be relative to the .xcodeproj file. */
+    addResource(fileRelativePath) {
+
+        // Add file reference, fix bug in xcode about uuid vs fileRef
+        let file = this.pbx.addFile(fileRelativePath, )
+        file.uuid = file.fileRef = file.fileRef || file.uuid
+
+        // Go through all projects
+        for (let project of this.projects()) {
+
+            // Find Resources group
+            let mainGroup = this.object(project.value.mainGroup)
+            let children = mainGroup.value.children.map(c => this.object(c.value))
+            let resourceGroup = children.find(c => c.value.name == 'Resources')
+            if (!resourceGroup) {
+
+                // No resource group, create one
+                let id = this.pbx.generateUuid()
+                this.pbx.hash.project.objects['PBXGroup'][id + '_comment'] = 'Resources'
+                this.pbx.hash.project.objects['PBXGroup'][id] = {
+                    isa: 'PBXGroup',
+                    name: 'Resources',
+                    sourceTree: '"<group>"',
+                    children: []
+                }
+
+                // Add group to main group
+                this.pbx.hash.project.objects['PBXGroup'][mainGroup.id].children.push({
+                    value: id,
+                    comment: 'Resources'
+                })
+
+                resourceGroup = this.object(id)
+
+            }
+
+            // Add file to Resources group
+            this.pbx.hash.project.objects['PBXGroup'][resourceGroup.id].children.push({
+                value: file.uuid,
+                comment: fileRelativePath
+            })
+
+            // Go through all targets in this project
+            for (let target of this.projectTargets(project.id)) {
+
+                // Skip if target is not an application
+                if (!target.value.productType.includes('com.apple.product-type.application'))
+                    continue
+
+                // Find resource build phase
+                let buildPhases = target.value.buildPhases.map(bp => this.object(bp.value))
+                let resourcePhase = buildPhases.find(bp => bp.value.isa == 'PBXResourcesBuildPhase')
+                if (!resourcePhase)
+                    continue
+
+                // Add a build file reference
+                let buildID = this.pbx.generateUuid()
+                this.pbx.hash.project.objects['PBXBuildFile'][buildID + '_comment'] = fileRelativePath
+                this.pbx.hash.project.objects['PBXBuildFile'][buildID] = {
+                    isa: 'PBXBuildFile',
+                    fileRef: file.uuid,
+                    fileRef_comment: fileRelativePath
+                }
+
+                // Add file to this phase
+                this.pbx.hash.project.objects['PBXResourcesBuildPhase'][resourcePhase.id].files.push({
+                    value: buildID,
+                    comment: fileRelativePath
+                })
+
+            }
+        }
+
     }
 
 }

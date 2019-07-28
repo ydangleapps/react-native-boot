@@ -51,6 +51,9 @@ module.exports = runner => {
         if (!ctx.ios.bundleID)
             ctx.ios.bundleID = 'com.' + ctx.property('name.ios').replace(/-/g, '')
 
+        // Get binary name
+        ctx.ios.binaryName = ctx.property('name.ios').replace(/[^0-9A-Za-z]/g, '')
+
     })
 
 }

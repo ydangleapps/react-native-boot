@@ -51,6 +51,13 @@ module.exports = runner => {
             to: `rn_path = '${path.resolve(ctx.project.path, 'node_modules/react-native')}'`
         })
 
+        // Update app module name
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: 'moduleName:@"HelloWorld"',
+            to: `moduleName:@"${ctx.property('name')}"`
+        })
+
         // Copy React headers to temporary folder
         // TODO: Someone please tell me why this is necessary...
         // await copyReactHeaders(ctx, 'React/Base')

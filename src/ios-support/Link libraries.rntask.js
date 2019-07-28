@@ -30,6 +30,18 @@ module.exports = runner => {
             return match && match[1]
         }
 
+        // Inject a dependency string into the Podfile
+        ctx.ios.injectDependency = async txt => {
+            
+            // Append to Podfile
+            replace.sync({
+                files: path.resolve(ctx.ios.path, 'Podfile'),
+                from: '#INJECT_PODS',
+                to: `#INJECT_PODS\n    ${txt}`
+            })
+
+        }
+
         // Add a local pod as a dependency
         ctx.ios.addLocalPodspecDependency = async podspec => {
 
@@ -310,6 +322,8 @@ module.exports = runner => {
     // 
     // Run `pod install`
     runner.register('prepare.ios.podinstall').name('Install dependencies').do(async ctx => {
+
+        // TODO: First run on this machine, do 'pod repo update'
 
         ctx.status('Installing...')
         await ctx.run(`pod install`, { cwd: ctx.ios.path })
