@@ -8,7 +8,7 @@ module.exports = runner => {
 
     //    
     // On startup, calculate a hash which will change whenever something in the project changes, ie packages installed, app metadata updated, etc
-    runner.register().name('Calculate dependency state hash').after('_init.project').require(ctx => ctx.project).do(async ctx => {
+    runner.register().name('Calculate dependency state hash').after('_init.project').requires(ctx => ctx.project).do(async ctx => {
 
         // Calculate the hash of the package lock files
         let txt = ''
