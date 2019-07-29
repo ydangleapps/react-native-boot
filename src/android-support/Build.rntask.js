@@ -20,8 +20,9 @@ module.exports = runner => {
         if (await fs.exists(unsigned)) {
 
             // Unsigned app was generated
-            ctx.build.output = unsigned
-            ctx.build.outputExt = '-unsigned.apk'
+            let filename = `${ctx.property('displayName') || ctx.property('name')} for Android (unsigned).apk`
+            await fs.copyFile(unsigned, path.resolve(ctx.project.path, 'output', filename))
+            ctx.build.outputs.push({ platform: 'android', filename })
             return
 
         }
@@ -31,8 +32,9 @@ module.exports = runner => {
         if (await fs.exists(signed)) {
 
             // Unsigned app was generated
-            ctx.build.output = signed
-            ctx.build.outputExt = '.apk'
+            let filename = `${ctx.property('displayName') || ctx.property('name')} for Android.apk`
+            await fs.copyFile(signed, path.resolve(ctx.project.path, 'output', filename))
+            ctx.build.outputs.push({ platform: 'android', filename })
             return
 
         }

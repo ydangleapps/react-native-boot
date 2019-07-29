@@ -6,8 +6,12 @@ const path = require('path')
 module.exports = runner => {
 
     //
-    // Build output for each installed platform
+    // Build output for each installed platform. Each platform must build it's output files to ${ctx.project.path}/output.
     runner.register('build').name('Build for release').do(async ctx => {
+
+        // Add context entry for storing all built products
+        ctx.build = {}
+        ctx.build.outputs = []
 
         // Setup project if needed
         await runner.run('setup.check', ctx)
@@ -19,8 +23,6 @@ module.exports = runner => {
             throw new Error('No platforms found.')
 
         // Find all platforms
-        let outputs = []
-        let errors = []
         for (let platformID in ctx.platforms) {
 
             // Get platform info
@@ -30,31 +32,41 @@ module.exports = runner => {
 
                 // Build for this platform
                 ctx.status('Starting build for ' + chalk.cyan(platform.name))
-                ctx.build = {}
                 await runner.run('build.' + platformID, ctx)
 
-                // Get output file/folder and copy to output directory in the project
-                let outputLocalPath = `output/${ctx.project.appInfo.name} for ${platform.name}${ctx.build.outputExt}`
-                await fs.ensureDir(path.resolve(ctx.project.path, 'output'))
-                await fs.copy(ctx.build.output, path.resolve(ctx.project.path, outputLocalPath))
-                outputs.push(outputLocalPath)
-
             } catch (err) {
-                errors.push('Failed to build for ' + chalk.cyan(platform.name) + ': ' + err.message)
+
+                // Push error output
+                ctx.build.outputs.push({
+                    platform: platformID,
+                    error: err
+                })
+
             }
 
         }
 
-        // Show output files
-        if (outputs.length)
-            console.log('\nBuild complete! Generated apps:\n' + outputs.map(o => '- ' + chalk.cyan(o) + '\n') + '\n')
+        // Stop if no outputs
+        if (ctx.build.outputs.length == 0)
+            throw new Error('No platforms built.')
 
-        // Show errors
-        if (errors.length)
-            console.log(chalk.red('\nErrors: \n') + errors.map(e => `- ${e}\n`))
+        // Show output
+        console.log('\n\nBuild output:')
+        for (let output of ctx.build.outputs) {
+
+            // Get platform info
+            let platform = ctx.platforms[output.platform]
+
+            // Output error or final path
+            if (output.error)
+                console.log('- ' + chalk.cyan(platform.name) + ': ' + chalk.yellow('Failed. ') + output.error.message)
+            else
+                console.log('- ' + chalk.cyan(platform.name) + ': Built ' + chalk.green('output/' + output.filename))
+
+        }
 
         // Done
-        console.log('')
+        console.log(' \n\n')
 
     })
 

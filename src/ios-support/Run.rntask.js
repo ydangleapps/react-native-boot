@@ -32,8 +32,6 @@ module.exports = runner => {
             + ` -allowProvisioningUpdates -allowProvisioningDeviceRegistration`
             + ` -derivedDataPath "${path.resolve(ctx.tempPath, 'ios-build')}"`
             + ` DEVELOPMENT_TEAM="${ctx.project.appInfo.iosTeamID}"`
-            // + ` USER_HEADER_SEARCH_PATHS="\\$(inherited) '${ctx.ios.path}'/**"`
-            // + ` ALWAYS_SEARCH_USER_PATHS=YES`
 
         // Add xcpretty to the command
         cmd = `set -o pipefail && ${cmd} | xcpretty`

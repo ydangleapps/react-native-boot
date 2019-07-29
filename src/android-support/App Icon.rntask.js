@@ -9,11 +9,14 @@ const chalk = require('chalk')
 // Setup app icon
 module.exports = runner => runner.register('prepare.android.icon').name('App icon').do(async ctx => {
 
-    // Find path to app icon
-    let name = ctx.property('icon.android') || 'icon-android.png'
-    let fullPath = path.resolve(ctx.project.path, name)
-    if (!fs.existsSync(fullPath))
-        return ctx.warning('App icon ' + chalk.blue(name) + ' does not exist, skipping.')
+    // Find app icon
+    let iconFile = ''
+    if (await fs.exists(path.resolve(ctx.project.path, 'metadata/icon-android.png')))
+        iconFile = path.resolve(ctx.project.path, 'metadata/icon-android.png')
+    else if (await fs.exists(path.resolve(ctx.project.path, 'metadata/icon.png')))
+        iconFile = path.resolve(ctx.project.path, 'metadata/icon.png')
+    else
+        return ctx.warning('No icon found. Please add an app icon to ' + chalk.cyan('metadata/icon-android.png') + ' in your project.')
 
     // Generate icons
     ctx.status('Generating icons...')
@@ -27,10 +30,10 @@ module.exports = runner => runner.register('prepare.android.icon').name('App ico
     fs.unlinkSync(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xhdpi/ic_launcher_round.png'))
     fs.unlinkSync(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png'))
     fs.unlinkSync(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png'))
-    await sharp(fullPath).resize(48, 48).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-mdpi/ic_launcher.png'))
-    await sharp(fullPath).resize(72, 72).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-hdpi/ic_launcher.png'))
-    await sharp(fullPath).resize(96, 96).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xhdpi/ic_launcher.png'))
-    await sharp(fullPath).resize(144, 144).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxhdpi/ic_launcher.png'))
-    await sharp(fullPath).resize(192, 192).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxxhdpi/ic_launcher.png'))
+    await sharp(iconFile).resize(48, 48).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-mdpi/ic_launcher.png'))
+    await sharp(iconFile).resize(72, 72).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-hdpi/ic_launcher.png'))
+    await sharp(iconFile).resize(96, 96).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xhdpi/ic_launcher.png'))
+    await sharp(iconFile).resize(144, 144).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxhdpi/ic_launcher.png'))
+    await sharp(iconFile).resize(192, 192).toFile(path.resolve(ctx.android.path, 'app/src/main/res/mipmap-xxxhdpi/ic_launcher.png'))
 
 })
