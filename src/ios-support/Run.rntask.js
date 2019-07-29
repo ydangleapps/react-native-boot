@@ -63,7 +63,8 @@ module.exports = runner => {
         let bundlePath = path.resolve(ctx.tempPath, 'ios-build/Build/Products/Debug-iphoneos/HelloWorld.app')
         
         // Deploy and run on device
-        await ctx.run(`ios-deploy --id "${ctx.device.serial}" --bundle "${bundlePath}" --debug`)
+        // TODO: Nice output, switch --justlaunch to --debug
+        await ctx.run(`ios-deploy --id "${ctx.device.serial}" --bundle "${bundlePath}" --justlaunch`)
 
     })
 

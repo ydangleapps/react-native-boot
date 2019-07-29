@@ -21,7 +21,7 @@ module.exports = runner => {
     
     //
     // Modify Android source code to support this library
-    runner.register('react-native-navigation').after('prepare.android.link').requires(ctx => ctx.project.uses('react-native-navigation')).do(async ctx => {
+    runner.register('react-native-navigation:android').name('react-native-navigation').after('prepare.android.link').requires(ctx => ctx.project.uses('react-native-navigation')).do(async ctx => {
 
         // Change native code as required by the react-native-navigation lib
         ctx.status('Modifying Android code...')
@@ -196,6 +196,38 @@ module.exports = runner => {
         //     android.useAndroidX=false
         //     android.enableJetifier=false
         // `)
+
+    })
+    
+    //
+    // Modify iOS source code to support this library
+    runner.register('react-native-navigation:ios').name('react-native-navigation').before('prepare.ios.link').requires(ctx => ctx.project.uses('react-native-navigation')).do(async ctx => {
+
+        // Change native code as required by the react-native-navigation lib
+        ctx.status('Modifying iOS code...')
+
+        // Add header to AppDelegate.m
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '#import',
+            to: `#import <ReactNativeNavigation/ReactNativeNavigation.h>\n#import`
+        })
+
+        // Replace appDidLaunch
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: /launchOptions\s*?{[\s\S]*?}/,
+            to: `launchOptions {
+
+                // Replaced by react-native-navigation
+                NSURL *jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+                [ReactNativeNavigation bootstrap:jsCodeLocation launchOptions:launchOptions];
+
+                return YES;
+
+            }`
+        })
+
 
     })
 
