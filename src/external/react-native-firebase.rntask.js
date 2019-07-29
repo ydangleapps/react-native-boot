@@ -290,6 +290,9 @@ module.exports = runner => {
     runner.register('firebase.ios.messaging').do(async ctx => {
         await ctx.ios.injectDependency("pod 'Firebase/Messaging', '~> 6.3.0'")
     })
+    runner.register('firebase.ios.firestore').do(async ctx => {
+        await ctx.ios.injectDependency("pod 'Firebase/Firestore', '~> 6.3.0'")
+    })
     runner.register('firebase.ios.functions').do(async ctx => {
         await ctx.ios.injectDependency("pod 'Firebase/Functions', '~> 6.3.0'")
     })
@@ -302,8 +305,61 @@ module.exports = runner => {
         await ctx.ios.injectDependency("pod 'Firebase/Database', '~> 6.3.0'")
     })
     runner.register('firebase.ios.links').do(async ctx => {
+
+        // Add custom URL scheme
+        let customURL = 'firebase-' + ctx.property('name.ios').toLowerCase().replace(/[^0-9a-z]/g, '')
+        await ctx.ios.addURLScheme(customURL)
+        
+        // Add dependency
         await ctx.ios.injectDependency("pod 'Firebase/DynamicLinks', '~> 6.3.0'")
-        // TODO: Setup
+
+        // Modify AppDelegate.m
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '#import',
+            to: `#import "RNFirebaseLinks.h"\n#import <React/RCTLinkingManager.h>\n#import`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '[FIRApp configure];',
+            to: `[FIROptions defaultOptions].deepLinkURLScheme = @"${customURL}";\n[FIRApp configure];`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '@implementation AppDelegate',
+            to: `@implementation AppDelegate
+            
+                - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+                    
+                    // Handle with React Native link manager
+                    BOOL handled = [RCTLinkingManager application:application openURL:url options:options];
+
+                    // If not handled, handle with Firebase link manager
+                    if (!handled)
+                        handled = [[RNFirebaseLinks instance] application:application openURL:url options:options];
+                    
+                    // Done
+                    return handled;
+
+                }
+
+                - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *))restorationHandler {
+                
+                    // Handle with React Native link manager
+                    BOOL handled = [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+
+                    // If not handled, handle with Firebase link manager
+                    if (!handled)
+                        handled = [[RNFirebaseLinks instance] application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+                
+                    // Done
+                    return handled;
+
+                }
+            
+            `
+        })
+        
     })
     runner.register('firebase.ios.notifications').do(async ctx => {
         // TODO: Setup

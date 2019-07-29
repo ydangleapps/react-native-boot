@@ -80,6 +80,7 @@ module.exports = runner => {
         await runner.run('prepare.ios.link', ctx)
         await runner.run('prepare.ios.icons', ctx)
         await runner.run('prepare.ios.permissions', ctx)
+        await runner.run('prepare.ios.urlscheme', ctx)
 
         // Store state hash
         ctx.session.set('ios.last-build-hash', ctx.project.stateHash)
