@@ -5,7 +5,7 @@
 </h1>
 <div align="center">
   <img src="https://img.shields.io/badge/android-ok-green.svg"/>
-  <img src="https://img.shields.io/badge/ios-no-red.svg"/>
+  <img src="https://img.shields.io/badge/ios-ok-green.svg"/>
   <img src="https://img.shields.io/badge/windows-no-red.svg"/>
 </div>
 
