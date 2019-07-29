@@ -27,10 +27,10 @@ module.exports = runner => {
 
     // iOS permissions
     runner.register().before('prepare.ios.permissions').requires(ctx => ctx.project.uses('react-native-image-picker')).do(ctx => {
-        ctx.iosPermissions.add('NSPhotoLibraryUsageDescription')
-        ctx.iosPermissions.add('NSCameraUsageDescription')
-        ctx.iosPermissions.add('NSPhotoLibraryAddUsageDescription')
-        ctx.iosPermissions.add('NSMicrophoneUsageDescription')
+        ctx.ios.permissions.add('NSPhotoLibraryUsageDescription')
+        ctx.ios.permissions.add('NSCameraUsageDescription')
+        ctx.ios.permissions.add('NSPhotoLibraryAddUsageDescription')
+        ctx.ios.permissions.add('NSMicrophoneUsageDescription')
     })
 
 }

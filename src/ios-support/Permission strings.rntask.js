@@ -1,7 +1,7 @@
 
 const plist = require('plist')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs-extra')
 const chalk = require('chalk')
 
 /**
@@ -12,13 +12,13 @@ const chalk = require('chalk')
  * Recommended usage:
  *
  *      ``` js
- *      module.exports = runner => runner.register().before('permissions.ios').do(ctx => {
+ *      module.exports = runner => runner.register().before('prepare.ios.permissions').do(ctx => {
  *
  *          // For the main project: Add a permission with it's usage description
- *          ctx.iosPermissions.add('NSCameraUsageDescription', 'Allows you to take a photo.')
+ *          ctx.ios.permissions.add('NSCameraUsageDescription', 'Allows you to take a photo.')
  * 
  *          // For a library: Add a permission and require the project to register it's own description
- *          ctx.iosPermissions.add('NSCameraUsageDescription')
+ *          ctx.ios.permissions.add('NSCameraUsageDescription')
  * 
  *      })
  *      ```
@@ -26,27 +26,30 @@ const chalk = require('chalk')
  */
 module.exports = runner => {
 
+    //
     // Add permission manager to the context
-    runner.contextTemplate.iosPermissions = new IOSPermissions()
+    runner.register().after('_init.ios').do(async ctx => {
+        ctx.ios.permissions = new IOSPermissions()
+    })
 
     // Add task to install permissions onto the Info.plist of the project
-    runner.register('permissions.ios').after('permissions').name('iOS').do(async ctx => {
+    runner.register('prepare.ios.permissions').name('Permissions').do(async ctx => {
 
         // Parse current plist file
-        ctx.status(`Applying descriptions for ${chalk.blue(Object.values(ctx.iosPermissions.items).length)} permissions...`)
-        let plistPath = path.resolve(ctx.project.path, 'ios', ctx.project.appInfo.name, 'Info.plist')
-        let plistTxt = await fs.promises.readFile(plistPath, 'utf8')
+        ctx.status(`Applying descriptions for ${chalk.blue(Object.values(ctx.ios.permissions.items).length)} permissions...`)
+        let plistPath = path.resolve(ctx.ios.path, 'HelloWorld/Info.plist')
+        let plistTxt = await fs.readFile(plistPath, 'utf8')
         let plistObj = plist.parse(plistTxt)
         
         // Add each permission
-        for (let permission of Object.values(ctx.iosPermissions.items)) {
+        for (let permission of Object.values(ctx.ios.permissions.items)) {
 
             // Stop if permission text is missing.
             if (!permission.text)
                 throw new Error(`No permission set for ${chalk.cyan(permission.name)}. Please create a ${chalk.cyan('permissions.ios.rntask.js')} file in your project and set the permission string:
 ${chalk.cyan(`
-    module.exports = runner => runner.register().before('permissions.ios').do(ctx => {
-        ctx.iosPermissions.add('${permission.name}', 'Description of why this permission is needed.')
+    module.exports = runner => runner.register().before('prepare.ios.permissions').do(ctx => {
+        ctx.ios.permissions.add('${permission.name}', 'Description of why this permission is needed.')
     })
 `)}
 
@@ -59,7 +62,7 @@ ${chalk.cyan(`
 
         // Write plist file back
         plistTxt = plist.build(plistObj)
-        await fs.promises.writeFile(plistPath, plistTxt)
+        await fs.writeFile(plistPath, plistTxt)
 
     })
 
