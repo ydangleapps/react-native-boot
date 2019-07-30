@@ -1,7 +1,7 @@
 
 const path = require('path')
 const replace = require('replace-in-file')
-const fs = require('fs')
+const fs = require('fs-extra')
 const sharp = require('sharp')
 const chalk = require('chalk')
 

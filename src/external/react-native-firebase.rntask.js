@@ -9,10 +9,11 @@ const PBX = require('../ios-support/PBX')
 // To reconfigure installed modules, run `npm start firebase.setup`
 
 module.exports = runner => {
+    
 
     //
     // Skip autolinking of this library on Android
-    runner.register().requires(c => c.project.uses('react-native-firebase:android.link')).before('prepare.android.link').do(ctx => {
+    runner.register().requires(c => c.project.uses('react-native-firebase')).before('prepare.android.link').do(ctx => {
         ctx.android.linking.skip['react-native-firebase'] = true
     })
 
@@ -108,6 +109,9 @@ module.exports = runner => {
         await ctx.android.injectDependency("implementation 'com.google.firebase:firebase-core:16.0.9'")
         await ctx.android.injectProject('react-native-firebase', path.resolve(ctx.project.path, 'node_modules/react-native-firebase/android'))
         await ctx.android.injectRNPackage('io.invertase.firebase', 'RNFirebasePackage')
+
+        // TODO: Seems to crash with this not added, find out which submodules need it
+        await ctx.android.injectDependency("implementation 'com.google.android.gms:play-services-ads:16.0.0'")
 
         // Run setup tasks
         for (let key in ctx.project.appInfo.firebase)

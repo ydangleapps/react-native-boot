@@ -11,7 +11,7 @@ module.exports = runner => {
     runner.register().after('_init.android').do(ctx => {
 
         // Add function to set the minimum SDK version
-        ctx.android.minSDK = 18
+        ctx.android.minSDK = 19
         ctx.android.requireMinSDK = function(version) {
             ctx.android.minSDK = Math.max(ctx.android.minSDK, version)
         }
@@ -22,7 +22,11 @@ module.exports = runner => {
     // Update android native project to use the correct minimum SDK version
     runner.register('prepare.android.minsdk').name('Minimum SDK').do(async ctx => {
 
-        // Update min SDK (can't go below 19)
+        // Stop if unchanged
+        if (ctx.android.minSDK <= 19)
+            return
+
+        // Update min SDK
         ctx.status('Updating Android minimum SDK to ' + chalk.blue(ctx.android.minSDK))
         replace.sync({
             files: path.resolve(ctx.android.path, 'build.gradle'),
