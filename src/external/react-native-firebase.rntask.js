@@ -110,9 +110,6 @@ module.exports = runner => {
         await ctx.android.injectProject('react-native-firebase', path.resolve(ctx.project.path, 'node_modules/react-native-firebase/android'))
         await ctx.android.injectRNPackage('io.invertase.firebase', 'RNFirebasePackage')
 
-        // TODO: Seems to crash with this not added, find out which submodules need it
-        await ctx.android.injectDependency("implementation 'com.google.android.gms:play-services-ads:16.0.0'")
-
         // Run setup tasks
         for (let key in ctx.project.appInfo.firebase)
             if (runner.tasks['firebase.android.' + key])

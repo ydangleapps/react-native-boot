@@ -126,11 +126,11 @@ module.exports = runner => {
             from: /public class[\s\S]*getPackages\(\) {([\s\S]*?)}[\s\S]*/g,
             to: (m, p1) => `public class MainApplication extends NavigationApplication {
 
-                // @Override
-                // protected void attachBaseContext(Context base) {
-                //     super.attachBaseContext(base);
-                //     MultiDex.install(this);
-                // }
+                @Override
+                protected void attachBaseContext(Context base) {
+                    super.attachBaseContext(base);
+                    MultiDex.install(this);
+                }
                 
                 @Override
                 protected ReactGateway createReactGateway() {
