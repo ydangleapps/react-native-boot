@@ -34,6 +34,10 @@ To add this library to an existing project:
 }
 ```
 
+## Changing app details
+
+See [here](docs/AppDetails.md) for details on how to change the app name, icon, etc.
+
 ## Usage
 
 Now that you have the tool installed, you can run your app with `npm start`. You can also run any of the commands by doing `npm start <CMD>`. See below for a list of available commands.
@@ -50,9 +54,9 @@ Command         | Description
 
 All contributions are welcome! Some documentation:
 
-- [Here](Recipes.md) is a collection of example tasks
-- [Here](About.md) is a description of how task collection and execution works
-- [Here](Support.md) is a list of supported platforms and libraries
+- [Here](docs/Recipes.md) is a collection of example tasks.
+- [Here](docs/About.md) is a description of how task collection and execution works.
+- [Here](docs/Support.md) is a list of supported platforms and libraries.
 
 The goal of this tool is to provide a zero-config React Native environment. Ideally
 installing a new react-native library into your project should be seamless. This means that any libraries which don't follow the standard project layout or have a special install process, need a custom run task.
