@@ -86,7 +86,6 @@ module.exports = runner => {
         await runner.run('prepare.android.link', ctx)
         await runner.run('prepare.android.minsdk', ctx)
         await runner.run('prepare.android.version', ctx)
-        await runner.run('prepare.android.file-extensions', ctx)
         await runner.run('prepare.android.sign', ctx)
 
         // Make sure user has accepted all licenses

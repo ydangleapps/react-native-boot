@@ -14,7 +14,9 @@ module.exports = runner => {
 
         // Allows libraries to override auto linking for a library by doing `ctx.android.linking.skip['my-lib'] = true`
         ctx.android.linking = {}
-        ctx.android.linking.skip = {}
+        ctx.android.linking.skip = {
+            'react-native': true
+        }
 
     })
 
@@ -24,7 +26,7 @@ module.exports = runner => {
 
         // Find all libraries to link
         ctx.status('Searching for native libraries...')
-        let files = await new Promise((resolve, reject) => glob('**/android/build.gradle', {
+        let files = await new Promise((resolve, reject) => glob('**/*build.gradle', {
             cwd: ctx.project.path,
             follow: true
         }, (err, matches) => {
@@ -41,6 +43,11 @@ module.exports = runner => {
 
             // Skip projects with an app.json, since those are most likely template full apps and not a library
             if (await fs.exists(path.resolve(ctx.project.path, file, '../../app.json')))
+                continue
+
+            // Skip if the build.gradle file is not a plugin
+            let txt = await fs.readFile(path.resolve(ctx.project.path, file), 'utf8')
+            if (!txt.includes('com.android.library'))
                 continue
 
             // Get project info

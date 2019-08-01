@@ -4,6 +4,7 @@
   React Native Boot
 </h1>
 <div align="center">
+  <img src="https://img.shields.io/badge/state-alpha-orange.svg"/>
   <img src="https://img.shields.io/badge/android-ok-green.svg"/>
   <img src="https://img.shields.io/badge/ios-ok-green.svg"/>
   <img src="https://img.shields.io/badge/windows-no-red.svg"/>
