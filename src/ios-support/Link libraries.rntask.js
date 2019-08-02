@@ -314,6 +314,22 @@ module.exports = runner => {
 
         }
 
+        // Read project local podspecs
+        for (let filename of await ctx.files.glob('**/*.podspec', ctx.project.path)) {
+
+            // Skip if in node_modules
+            if (filename.includes('node_modules'))
+                continue
+
+            // Get absolute path
+            let podspec = path.resolve(ctx.project.path, filename)
+
+            // Link it
+            ctx.status('Adding local pod' + chalk.gray(' (' + path.basename(podspec) + ')'))
+            await ctx.ios.addLocalPodspecDependency(podspec)
+
+        }
+
         // Install pods
         await runner.run('prepare.ios.podinstall', ctx)
 
