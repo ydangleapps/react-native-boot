@@ -40,6 +40,18 @@ module.exports = runner => {
             from: /<key>CFBundleDisplayName<\/key>\s*?<string>Hello App Display Name<\/string>/g,
             to: `<key>CFBundleDisplayName</key><string>${ctx.property('displayName') || ctx.property('name')}</string>`
         })
+
+        // Update app version
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/Info.plist'),
+            from: /<key>CFBundleShortVersionString<\/key>\s*?<string>1.0<\/string>/g,
+            to: `<key>CFBundleShortVersionString</key><string>${ctx.project.info.version}</string>`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/Info.plist'),
+            from: /<key>CFBundleVersion<\/key>\s*?<string>1<\/string>/g,
+            to: `<key>CFBundleVersion</key><string>${ctx.project.info.version}</string>`
+        })
         
         // Update project references
         replace.sync({ 

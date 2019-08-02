@@ -288,6 +288,20 @@ module.exports = runner => {
                 // Get absolute path
                 podspec = path.resolve(packagePath, podspec)
 
+                // HACK: The default react native template does not specify the correct path. Fix that nonsense.
+                let podspecTxt = await fs.readFile(podspec, 'utf8')
+                let podspecName = path.basename(podspec.substring(0, podspec.length - 8))
+                let searchStr = `.source_files  = "${podspecName}/**/*.{h,m}"`
+                let idx = podspecTxt.indexOf(searchStr)
+                if (idx != -1 && !await fs.exists(path.resolve(podspec, '..', podspecName))) {
+
+                    // Fix path
+                    ctx.warning(chalk.cyan(path.basename(podspec)) + ' did not have a correct source_files referece, we have changed it.')
+                    podspecTxt = podspecTxt.substring(0, idx) + '.source_files = "*.{h,m}"' + podspecTxt.substring(idx + searchStr.length)
+                    await fs.writeFile(podspec, podspecTxt)
+
+                }
+
                 // Install it as a dependency
                 ctx.status('Adding ' + chalk.cyan(packageInfo.name) + chalk.gray(' (' + path.basename(podspec) + ')'))
                 await ctx.ios.addLocalPodspecDependency(podspec)
