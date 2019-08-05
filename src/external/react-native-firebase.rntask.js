@@ -363,7 +363,38 @@ module.exports = runner => {
         
     })
     runner.register('firebase.ios.notifications').do(async ctx => {
-        // TODO: Setup
+
+        // Modify AppDelegate.m
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '#import',
+            to: `#import "RNFirebaseNotifications.h"\n#import "RNFirebaseMessaging.h"\n#import`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '[FIRApp configure];',
+            to: `[FIRApp configure];\n    [RNFirebaseNotifications configure];`
+        })
+        replace.sync({
+            files: path.resolve(ctx.ios.path, 'HelloWorld/AppDelegate.m'),
+            from: '@implementation AppDelegate',
+            to: `@implementation AppDelegate
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+    [[RNFirebaseNotifications instance] didReceiveLocalNotification:notification];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(nonnull NSDictionary *)userInfo fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHandler{
+    [[RNFirebaseNotifications instance] didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+
+- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
+    [[RNFirebaseMessaging instance] didRegisterUserNotificationSettings:notificationSettings];
+}
+
+`
+        })
+        
     })
     runner.register('firebase.ios.remoteconfig').do(async ctx => {
         await ctx.ios.injectDependency("pod 'Firebase/RemoteConfig', '~> 6.3.0'")
