@@ -147,6 +147,15 @@ module.exports = runner => {
             await fs.appendFile(path.resolve(ctx.android.path, 'app/build.gradle'), '\n' + code)
         }
 
+        // Inject something into the manifest
+        ctx.android.injectManifest = async txt => {
+            replace.sync({
+                files: path.resolve(ctx.android.path, 'app/src/main/AndroidManifest.xml'),
+                from: '<application',
+                to: txt + '\n    <application'
+            })
+        }
+
     })
 
 }

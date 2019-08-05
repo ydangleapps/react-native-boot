@@ -194,9 +194,9 @@ module.exports = runner => {
     })
     runner.register('firebase.android.notifications').do(async ctx => {
         await ctx.android.injectRNPackage('io.invertase.firebase.notifications', 'RNFirebaseNotificationsPackage')
-        await ctx.android.injectPermission(`<uses-permission android:name="android.permission.INTERNET" />`)
-        await ctx.android.injectPermission(`<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />`)
-        await ctx.android.injectPermission(`<uses-permission android:name="android.permission.VIBRATE" />`)
+        await ctx.android.injectManifest(`<uses-permission android:name="android.permission.INTERNET" />`)
+        await ctx.android.injectManifest(`<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />`)
+        await ctx.android.injectManifest(`<uses-permission android:name="android.permission.VIBRATE" />`)
         replace.sync({
             files: path.resolve(ctx.android.path, 'app/src/main/AndroidManifest.xml'),
             from: '</application>',
