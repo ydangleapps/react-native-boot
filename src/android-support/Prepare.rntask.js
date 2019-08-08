@@ -89,8 +89,12 @@ module.exports = runner => {
         await runner.run('prepare.android.sign', ctx)
 
         // Make sure user has accepted all licenses
-        ctx.status('Checking Android SDK licenses...')
-        await ctx.run(`"${path.resolve(ctx.android.sdkRoot, 'tools/bin/sdkmanager')}" --licenses`)
+        try {
+            ctx.status('Checking Android SDK licenses...')
+            await ctx.run(`"${path.resolve(ctx.android.sdkRoot, 'tools/bin/sdkmanager')}" --licenses`)
+        } catch (err) {
+            ctx.warning('Unable to accept licenses for Android SDK: ' + err.message)
+        }
 
         // Store state hash
         ctx.session.set('android.last-build-hash', ctx.project.stateHash)

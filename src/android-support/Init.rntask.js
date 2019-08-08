@@ -42,12 +42,6 @@ module.exports = runner => {
             return false
         }
 
-        // Make sure Java exists
-        if (!await ctx.pathTo('java')) {
-            ctx.warning('Java is not installed.')
-            return false
-        }
-
         // Success, Android is available
         return true
 
