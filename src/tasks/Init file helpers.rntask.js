@@ -49,4 +49,32 @@ module.exports = runner => runner.register().name('Add file helpers').before('_i
 
     }
 
+    /** Append text to a file */
+    ctx.files.append = async function(fpath, txt) {
+
+        // Read file
+        let fileTxt = await fs.readFile(fpath, 'utf8')
+
+        // Append text
+        fileTxt = fileTxt + txt
+
+        // Write file back
+        await fs.writeFile(fpath, fileTxt)
+
+    }
+
+    /** Prepend text to a file */
+    ctx.files.prepend = async function(fpath, txt) {
+
+        // Read file
+        let fileTxt = await fs.readFile(fpath, 'utf8')
+
+        // Prepend text
+        fileTxt = txt + fileTxt
+
+        // Write file back
+        await fs.writeFile(fpath, fileTxt)
+
+    }
+
 })

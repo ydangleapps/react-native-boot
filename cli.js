@@ -54,14 +54,10 @@ async function main() {
     // Load tasks from those files
     for (let file of files) {
 
-        // Load, catch errors
-        try {
-            let func = require(path.resolve(projectPath || __dirname, file))
-            if (typeof func != 'function') throw new Error('Exported item is not a function.')
-            func(taskRunner, ctx)
-        } catch (err) {
-            console.warn(chalk.red('Task error: ') + err.stack)
-        }
+        // Load task
+        let func = require(path.resolve(projectPath || __dirname, file))
+        if (typeof func != 'function') throw new Error('Exported item is not a function.')
+        func(taskRunner, ctx)
 
     }
 
