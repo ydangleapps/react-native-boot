@@ -57,7 +57,7 @@ module.exports = runner => {
         } catch (err) {
 
             // Check if error is an incompatible signature, which often occurs when the debug certificate changes.
-            if (!err.message.includes('signatures do not match'))
+            if (!err.message.includes('signatures do not match') && !err.message.includes('INSTALL_FAILED_ALREADY_EXISTS'))
                 throw err
 
             // Ask the user if they want to uninstall the old app
