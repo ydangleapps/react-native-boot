@@ -363,4 +363,20 @@ module.exports = class PBX {
 
     }
 
+    /** Set target attribute */
+    setTargetAttribute(targetID, name, value) {
+
+        // Get attributes
+        let project = this.projects()[0]
+        let attributeDict = project.value.attributes.TargetAttributes
+
+        // Create attribute category if needed
+        if (!attributeDict[targetID])
+            attributeDict[targetID] = {}
+
+        // Set attribute
+        attributeDict[targetID][name] = value
+
+    }
+
 }
