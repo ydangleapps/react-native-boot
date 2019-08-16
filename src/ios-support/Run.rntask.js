@@ -12,16 +12,6 @@ module.exports = runner => {
         // Prepare native projet folder
         await runner.run('prepare.ios', ctx)
 
-        // Ask for team ID if needed
-        if (!ctx.project.appInfo.iosTeamID) {
-
-            // Ask for it
-            console.log('You need to specify your Apple development team ID. You can find it by logging in to ' + chalk.cyan('developer.apple.com') + ' and then going to Account > Membership.')
-            ctx.project.appInfo.iosTeamID = await ctx.console.ask({ question: 'What is your Apple development team ID?' })
-            ctx.project.save()
-
-        }
-
         // Start Metro bundler through CLI
         ctx.run(`node ./node_modules/react-native/cli.js start`)
 
@@ -31,7 +21,6 @@ module.exports = runner => {
             + ` -workspace HelloWorld.xcworkspace -scheme HelloWorld -destination "id=${ctx.device.serial}"`
             + ` -allowProvisioningUpdates -allowProvisioningDeviceRegistration`
             + ` -derivedDataPath "${path.resolve(ctx.tempPath, 'ios-build')}"`
-            + ` DEVELOPMENT_TEAM="${ctx.project.appInfo.iosTeamID}"`
 
         // Add xcpretty to the command
         cmd = `set -o pipefail && ${cmd} | xcpretty`

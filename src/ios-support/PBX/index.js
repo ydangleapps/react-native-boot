@@ -1,7 +1,16 @@
-const xcode = require('xcode')
+
 const path = require('path')
 const chalk = require('chalk')
 const fs = require('fs-extra')
+
+const ArchiveParser = require('./ArchiveParser')
+const ArchiveSaver = require('./ArchiveSaver')
+const Targets = require('./Targets')
+
+// Register all NSObject classes
+require('./classes/PBXFileReference').registerClass()
+require('./classes/PBXGroup').registerClass()
+require('./classes/PBXProject').registerClass()
 
 //
 // Handles reading contents from an Xcode .pbxproj file
@@ -13,9 +22,8 @@ module.exports = class PBX {
 
         // Parse file immediately
         this.file = file
-        this.pbx = xcode.project(file)
-        this.pbx.parseSync()
-
+        this.project = new ArchiveParser().deserialize(fs.readFileSync(file, 'utf8'))
+        
         // Project vars
         this.vars = {
             SRCROOT: path.resolve(file)
@@ -25,71 +33,9 @@ module.exports = class PBX {
 
     /** Save changes back to the project file */
     async save() {
-        return fs.writeFile(this.file, this.pbx.writeSync())
-    }
-
-    /** Get object with specified ID */
-    object(id) {
-
-        // Go through everything and find it
-        for (let type in this.pbx.hash.project.objects) {
-
-            // Look for match
-            let obj = this.pbx.hash.project.objects[type][id]
-            if (!obj)
-                continue
-            
-            // Found it, return fields
-            return {
-                id,
-                value: this.pbx.hash.project.objects[type][id],
-                comment: this.pbx.hash.project.objects[type][id + '_comment'] || ''
-            }
-
-        }
-
-    }
-
-    /** Get all objects with the specified type */
-    objects(type) {
-
-        // Create list of all objects of this type
-        let items = []
-        for (let id in this.pbx.hash.project.objects[type] || {}) {
-
-            // Skip comments
-            if (typeof this.pbx.hash.project.objects[type][id] != 'object')
-                continue
-
-            // Create container for each object
-            items.push({
-                id,
-                value: this.pbx.hash.project.objects[type][id],
-                comment: this.pbx.hash.project.objects[type][id + '_comment'] || ''
-            })
-
-        }
-        return items
-
-    }
-
-    /** Return all projects */
-    projects() {
-        return this.objects('PBXProject')
-    }
-
-    /** Return all targets for a project */
-    projectTargets(projectID) {
-
-        // Return all
-        let proj = this.object(projectID).value
-        return proj.targets.map(targetInfo => {
-
-            // Fetch object
-            return this.object(targetInfo.value)
-
-        })
-
+        console.log(new ArchiveSaver().serialize(this.project))
+        process.exit()
+        return fs.writeFile(this.file, new ArchiveSaver().serialize(this.project))
     }
 
     /** Returns a relative path to a file ID. Relative to the original .xcodeproj directory. */

@@ -2,6 +2,7 @@
 const path = require('path')
 const fs = require('fs-extra')
 const replace = require('replace-in-file')
+const PBX = require('./PBX')
 
 module.exports = runner => {
 
@@ -87,6 +88,24 @@ module.exports = runner => {
             from: '"HelloWorld"',
             to: `"${ctx.property('displayName') || ctx.property('name')}"`
         })
+
+        // Ask for team ID if needed
+        if (!ctx.project.appInfo.iosTeamID) {
+
+            // Ask for it
+            console.log('You need to specify your Apple development team ID. You can find it by logging in to ' + chalk.cyan('developer.apple.com') + ' and then going to Account > Membership.')
+            ctx.project.appInfo.iosTeamID = await ctx.console.ask({ question: 'What is your Apple development team ID?' })
+            if (!ctx.project.appInfo.iosTeamID) throw new Error("No Apple development team ID specified.")
+            ctx.project.save()
+
+        }
+
+        // Set team ID on each target's attributes
+        let xcode = new PBX(path.resolve(ctx.ios.path, 'HelloWorld.xcodeproj/project.pbxproj'))
+        for (let target of xcode.project.targets) {
+            xcode.project.setTargetAttribute(target, 'DevelopmentTeam', ctx.project.appInfo.iosTeamID)
+        }
+        xcode.save()
 
         // Do other prepare steps
         await runner.run('prepare.ios.link', ctx)
