@@ -82,6 +82,7 @@ module.exports = runner => {
         await fs.writeFile(path.resolve(ctx.android.path, 'local.properties'), config)
 
         // Do next prepare steps
+        await runner.run('prepare.android.urlscheme', ctx)
         await runner.run('prepare.android.icon', ctx)
         await runner.run('prepare.android.link', ctx)
         await runner.run('prepare.android.minsdk', ctx)
