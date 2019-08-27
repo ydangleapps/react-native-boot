@@ -21,7 +21,7 @@ module.exports = runner => {
     
     //
     // Modify Android source code to support this library
-    runner.register('react-native-navigation:android').name('react-native-navigation').after('prepare.android.link').requires(ctx => ctx.project.uses('react-native-navigation')).do(async ctx => {
+    runner.register('react-native-navigation:android').name('react-native-navigation').after('prepare.android.link').requires(ctx => ctx.project.uses('react-native-navigation')).priority(-9).do(async ctx => {
 
         // Change native code as required by the react-native-navigation lib
         ctx.status('Modifying Android code...')
@@ -94,17 +94,17 @@ module.exports = runner => {
 
         // Update main activity class code
         replace.sync({
-            files: path.resolve(ctx.android.path, 'app/src/main/java/com/ydangleapps/flick/MainActivity.java'),
+            files: path.resolve(ctx.android.path, 'app/src/main/java/**/MainActivity.java'),
             from: 'import com.facebook.react.ReactActivity;',
             to: 'import com.reactnativenavigation.NavigationActivity;'
         })
         replace.sync({
-            files: path.resolve(ctx.android.path, 'app/src/main/java/com/ydangleapps/flick/MainActivity.java'),
+            files: path.resolve(ctx.android.path, 'app/src/main/java/**/MainActivity.java'),
             from: 'public class MainActivity extends ReactActivity',
             to: 'public class MainActivity extends NavigationActivity'
         })
         replace.sync({
-            files: path.resolve(ctx.android.path, 'app/src/main/java/com/ydangleapps/flick/MainActivity.java'),
+            files: path.resolve(ctx.android.path, 'app/src/main/java/**/MainActivity.java'),
             from: /\@Override[\s\S]*?protected String getMainComponentName\(\) {[\s\S]*?}/g,
             to: ' '
         })
@@ -201,7 +201,7 @@ module.exports = runner => {
     
     //
     // Modify iOS source code to support this library
-    runner.register('react-native-navigation:ios').name('react-native-navigation').before('prepare.ios.link').requires(ctx => ctx.project.uses('react-native-navigation')).do(async ctx => {
+    runner.register('react-native-navigation:ios').name('react-native-navigation').before('prepare.ios.link').requires(ctx => ctx.project.uses('react-native-navigation')).priority(-9).do(async ctx => {
 
         // Change native code as required by the react-native-navigation lib
         ctx.status('Modifying iOS code...')

@@ -39,8 +39,17 @@ module.exports = class TaskRunner {
         // Create task
         let task = new Task(id)
         this.tasks[id] = task
+
+        // Clear sorted tasks cache
+        this._sortedTasks = null
         return task
 
+    }
+
+    /** Returns a sorted array of tasks */
+    get sortedTasks() {
+        if (!this._sortedTasks) this._sortedTasks = Object.values(this.tasks).sort((a, b) => a._priority - b._priority)
+        return this._sortedTasks
     }
 
     taskName(id) {
@@ -55,6 +64,7 @@ module.exports = class TaskRunner {
             status: txt => console.log(chalk.blue(ctx.stack.map(id => this.tasks[id].taskName || id).join(' > ') + ': ') + txt),
             warning: txt => ctx.status(chalk.yellow('Warning: ') + txt)
         }, this.contextTemplate)
+
         return ctx
 
     }
@@ -100,7 +110,7 @@ module.exports = class TaskRunner {
         ctx.stack.push(id)
 
         // Run pre-tasks
-        for (let otherTask of Object.values(this.tasks))
+        for (let otherTask of this.sortedTasks)
             if (otherTask.beforeTasks.includes(id))
                 await this.run(otherTask.id, ctx)
 
@@ -130,7 +140,7 @@ module.exports = class TaskRunner {
         }
 
         // Run post-tasks
-        for (let otherTask of Object.values(this.tasks))
+        for (let otherTask of this.sortedTasks)
             if (otherTask.afterTasks.includes(id))
                 await this.run(otherTask.id, ctx)
 
@@ -152,6 +162,7 @@ class Task {
         this.code = null
         this.requireChecks = []
         this.needsProject = true
+        this._priority = 0
     }
 
     /** Sets the task's human friendly name. */
@@ -202,6 +213,12 @@ class Task {
     /** If false, this command can be run outside of a project. */
     requiresProject(b) {
         this.needsProject = b
+        return this
+    }
+
+    /** Set priority. 0 is default, negative runs before the default and positive runs after the default. */
+    priority(p) {
+        this._priority = p
         return this
     }
 
