@@ -64,7 +64,7 @@ module.exports = runner => {
             to: `launchOptions {
 
                 // Added by react-native-splash-screen
-                [RNSplashScreen show];
+                // TODO: This is broken: [RNSplashScreen show];
             `
         })
 
