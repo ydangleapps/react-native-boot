@@ -51,6 +51,9 @@ module.exports = runner => {
     // Update iOS code
     runner.register('react-native-splash-screen:ios').after('prepare.ios.link').requires(ctx => ctx.project.uses('react-native-splash-screen')).do(async ctx => {
 
+        // TODO: This is broken
+        return
+
         // Update app delegate
         ctx.status('Updating native source code')
         replace.sync({
@@ -64,7 +67,7 @@ module.exports = runner => {
             to: `launchOptions {
 
                 // Added by react-native-splash-screen
-                // TODO: This is broken: [RNSplashScreen show];
+                [RNSplashScreen show];
             `
         })
 
