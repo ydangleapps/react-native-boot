@@ -65,8 +65,7 @@ module.exports = runner => {
 
                 // Added by react-native-splash-screen
                 [RNSplashScreen show];
-
-            }`
+            `
         })
 
     })
