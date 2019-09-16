@@ -52,12 +52,17 @@ module.exports = runner => {
 
             // Install to device
             ctx.status('Installing to device...')
-            await ctx.android.adb(`-s ${ctx.device.serial} install "${path.resolve(ctx.android.path, 'app/build/outputs/apk/debug/app-debug.apk')}"`)
+            let result = await ctx.android.adb(`-s ${ctx.device.serial} install "${path.resolve(ctx.android.path, 'app/build/outputs/apk/debug/app-debug.apk')}"`)
+            
+            // Decode error from older devices
+            let errMatch = /Failure \[(.*)\]/.exec(result)
+            if (errMatch)
+                throw new Error("Couldn't install apk: " + errMatch[1])
 
         } catch (err) {
 
             // Check if error is an incompatible signature, which often occurs when the debug certificate changes.
-            if (!err.message.includes('signatures do not match') && !err.message.includes('INSTALL_FAILED_ALREADY_EXISTS'))
+            if (!err.message.includes('signatures do not match') && !err.message.includes('INSTALL_FAILED_ALREADY_EXISTS') && !err.message.includes('INSTALL_FAILED_UPDATE_INCOMPATIBLE'))
                 throw err
 
             // Ask the user if they want to uninstall the old app
