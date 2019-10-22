@@ -22,6 +22,9 @@ module.exports = runner => {
         if (Object.keys(ctx.platforms).length == 0)
             throw new Error('No platforms found.')
 
+        // Make sure output folder exists
+        await fs.ensureDir(path.resolve(ctx.project.path, 'output'))
+
         // Find all platforms
         for (let platformID in ctx.platforms) {
 
